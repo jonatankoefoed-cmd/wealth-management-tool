@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Minimalist wealth growth symbol - stacked rounded bars ascending -->
+  <rect x="8" y="32" width="8" height="12" rx="3" fill="currentColor"/>
+  <rect x="20" y="22" width="8" height="22" rx="3" fill="currentColor"/>
+  <rect x="32" y="10" width="8" height="34" rx="3" fill="currentColor"/>
+</svg>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Empty state: No scenarios -->
+  <!-- Minimal line art style, low contrast, premium feel -->
+  
+  <!-- Multiple stacked cards representing scenarios -->
+  <rect x="75" y="60" width="60" height="70" rx="6" stroke="#E5E7EB" stroke-width="1.5" fill="none"/>
+  <rect x="65" y="50" width="60" height="70" rx="6" stroke="#E5E7EB" stroke-width="1.5" fill="#FFFFFF"/>
+  <rect x="55" y="40" width="60" height="70" rx="6" stroke="#E5E7EB" stroke-width="1.5" fill="#FFFFFF"/>
+  
+  <!-- Line content in front card -->
+  <line x1="65" y1="55" x2="100" y2="55" stroke="#E5E7EB" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="65" y1="68" x2="90" y2="68" stroke="#E5E7EB" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="65" y1="81" x2="95" y2="81" stroke="#E5E7EB" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Plus icon indicator -->
+  <circle cx="145" cy="100" r="12" stroke="#9CA3AF" stroke-width="1.5" fill="none"/>
+  <line x1="145" y1="94" x2="145" y2="106" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="139" y1="100" x2="151" y2="100" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

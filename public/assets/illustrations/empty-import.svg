@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Empty state: Import required -->
+  <!-- Minimal line art style, low contrast, premium feel -->
+  
+  <!-- Upload arrow with document -->
+  <rect x="65" y="50" width="70" height="90" rx="6" stroke="#E5E7EB" stroke-width="1.5" fill="none"/>
+  
+  <!-- Folded corner -->
+  <path d="M115 50 L115 65 L135 65" stroke="#E5E7EB" stroke-width="1.5" fill="none"/>
+  <path d="M115 50 L135 65" stroke="#E5E7EB" stroke-width="1.5" fill="none"/>
+  
+  <!-- Upload arrow -->
+  <path d="M100 75 L100 105" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M90 85 L100 75 L110 85" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Base line -->
+  <line x1="85" y1="120" x2="115" y2="120" stroke="#E5E7EB" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="48" viewBox="0 0 180 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Lockup: Mark + Wordmark combined -->
+  <g>
+    <!-- Mark -->
+    <rect x="4" y="28" width="6" height="12" rx="2" fill="currentColor"/>
+    <rect x="14" y="20" width="6" height="20" rx="2" fill="currentColor"/>
+    <rect x="24" y="10" width="6" height="30" rx="2" fill="currentColor"/>
+    <!-- Wordmark -->
+    <text x="44" y="32" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500" fill="currentColor">Wealth</text>
+  </g>
+</svg>
