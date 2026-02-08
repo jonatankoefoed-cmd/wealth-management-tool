@@ -1,0 +1,11 @@
+import type { HTMLAttributes } from "react";
+import { cn } from "@/lib/cn";
+
+export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>): JSX.Element {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-brand-border/70", className)}
+      {...props}
+    />
+  );
+}

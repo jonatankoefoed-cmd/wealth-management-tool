@@ -1,0 +1,57 @@
+{
+  "name": "wealth-management-tool",
+  "version": "1.0.0",
+  "description": "Personal wealth management database foundation",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "check:node": "node scripts/ensure-node.js",
+    "db:build": "npm run check:node && tsc -p tsconfig.backend.json",
+    "db:generate": "npm run check:node && prisma generate",
+    "db:migrate": "npm run check:node && prisma migrate dev",
+    "db:migrate:init": "npm run check:node && prisma migrate dev --name init",
+    "db:migrate:deploy": "npm run check:node && prisma migrate deploy",
+    "db:seed": "npm run db:build && prisma db seed",
+    "db:verify": "npm run db:build && node --experimental-default-type=commonjs dist/scripts/verify-db.js",
+    "db:import": "npm run db:build && node --experimental-default-type=commonjs dist/scripts/import-csv.js",
+    "db:verify:imports": "npm run db:build && node --experimental-default-type=commonjs dist/scripts/verify-imports.js",
+    "db:verify:tax": "npm run db:build && node --experimental-default-type=commonjs dist/scripts/verify-tax.js",
+    "monthly:run": "npm run db:build && node --experimental-default-type=commonjs dist/scripts/run-monthly-savings.js",
+    "housing:verify": "npm run db:build && node --experimental-default-type=commonjs dist/scripts/verify-housing.js",
+    "housing:test": "npm run db:build && node --experimental-default-type=commonjs --test dist/src/housing/__tests__/housing-2026.test.js",
+    "projection:verify": "npm run db:build && node --experimental-default-type=commonjs dist/scripts/verify-projection-housing.js",
+    "projection:test": "npm run db:build && node --experimental-default-type=commonjs --test dist/src/projection/__tests__/projection-housing.test.js",
+    "test": "jest"
+  },
+  "prisma": {
+    "seed": "node --experimental-default-type=commonjs dist/prisma/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.18.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.563.0",
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.1",
+    "@types/react": "^19.2.13",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.24",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.6",
+    "postcss": "^8.5.6",
+    "prisma": "^6.18.0",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

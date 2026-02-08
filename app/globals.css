@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  border-color: theme(colors.brand.border);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-brand-bg text-brand-text1 antialiased;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+input,
+select,
+textarea {
+  @apply rounded-md border-brand-border bg-brand-surface2 text-brand-text1 placeholder:text-brand-text3;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  @apply border-brand-accent ring-brand-accent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8d4c5;
+  border-radius: 999px;
+}
