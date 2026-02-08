@@ -1,0 +1,40 @@
+{
+  "taxYear": 2026,
+
+  "amContribution": {
+    "rate": null
+  },
+
+  "personal": {
+    "personalAllowance": null,
+
+    "bottomTax": {
+      "rate": null
+    },
+
+    "topTax": {
+      "rate": null,
+      "threshold": null
+    }
+  },
+
+  "equityIncome": {
+    "threshold": null,
+    "rateLow": null,
+    "rateHigh": null
+  },
+
+  "ask": {
+    "rate": null
+  },
+
+  "capitalIncome": {
+    "model": "MVP_PLACEHOLDER",
+    "notes": "Capital income integration into personal tax base is added in later version."
+  },
+
+  "markToMarket": {
+    "defaultTreatment": "UNKNOWN",
+    "notes": "Adapter must classify each taxableChange as EQUITY_INCOME or CAPITAL_INCOME."
+  }
+}
