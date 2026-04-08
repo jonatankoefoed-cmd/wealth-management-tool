@@ -1,0 +1,217 @@
+{
+    "stocks": {
+        "AAPL": {
+            "logo": "/securities/stocks/AAPL.png",
+            "name": "Apple",
+            "isin": null
+        },
+        "MSFT": {
+            "logo": "/securities/stocks/MSFT.png",
+            "name": "Microsoft",
+            "isin": "US5949181045"
+        },
+        "NVDA": {
+            "logo": "/securities/stocks/NVDA.png",
+            "name": "NVIDIA",
+            "isin": "US67066G1040"
+        },
+        "TSLA": {
+            "logo": "/securities/stocks/TSLA.png",
+            "name": "Tesla",
+            "isin": null
+        },
+        "GOOGL": {
+            "logo": "/securities/stocks/GOOGL.png",
+            "name": "Alphabet A",
+            "isin": null
+        },
+        "NOVO-B": {
+            "logo": "/securities/stocks/NOVO-B.png",
+            "name": "Novo Nordisk B",
+            "isin": "DK0062498333"
+        },
+        "DANSKE": {
+            "logo": "/securities/stocks/DANSKE.png",
+            "name": "Danske Bank",
+            "isin": "DK0010274414"
+        },
+        "BABA": {
+            "logo": "/securities/stocks/BABA.png",
+            "name": "Alibaba Group ADR",
+            "isin": null
+        },
+        "COIN": {
+            "logo": "/securities/stocks/COIN.png",
+            "name": "Coinbase Global",
+            "isin": null
+        },
+        "CLSK": {
+            "logo": "/securities/stocks/CLSK.png",
+            "name": "CleanSpark",
+            "isin": null
+        },
+        "GLXY": {
+            "logo": "/securities/stocks/GLXY.png",
+            "name": "Galaxy Digital Holdings",
+            "isin": null
+        },
+        "GOMX": {
+            "logo": "/securities/stocks/GOMX.png",
+            "name": "Gomspace Group",
+            "isin": null
+        },
+        "LCID": {
+            "logo": "/securities/stocks/LCID.png",
+            "name": "Lucid Group",
+            "isin": null
+        },
+        "SAS": {
+            "logo": "/securities/stocks/SAS.png",
+            "name": "SAS",
+            "isin": null
+        },
+        "SE": {
+            "logo": "/securities/stocks/SE.png",
+            "name": "Sea ADR",
+            "isin": null
+        },
+        "CBRAIN": {
+            "logo": "/securities/stocks/CBRAIN.png",
+            "name": "cBrain",
+            "isin": null
+        }
+    },
+    "etfProviders": {
+        "iShares": {
+            "logo": "/securities/etfs/iShares.png",
+            "name": "iShares by BlackRock"
+        },
+        "Amundi": {
+            "logo": "/securities/etfs/Amundi.png",
+            "name": "Amundi"
+        },
+        "Xtrackers": {
+            "logo": "/securities/etfs/Xtrackers.png",
+            "name": "Xtrackers by DWS"
+        }
+    },
+    "etfs": {
+        "iShares Core S&P 500 UCITS ETF USD (Acc)": {
+            "provider": "iShares",
+            "isin": "IE00B5BMR087"
+        },
+        "iShares Core S&P 500 UCITS ETF USD (Dist)": {
+            "provider": "iShares",
+            "isin": "IE0031442068"
+        },
+        "iShares Core MSCI World UCITS ETF USD (Acc)": {
+            "provider": "iShares",
+            "isin": "IE00B4L5Y983"
+        },
+        "iShares Core MSCI Europe UCITS ETF EUR (Acc)": {
+            "provider": "iShares",
+            "isin": null
+        },
+        "iShares Automation & Robotics UCITS ETF USD (Acc)": {
+            "provider": "iShares",
+            "isin": null
+        },
+        "iShares Edge MSCI World Minimum Volatility UCITS ETF USD (Acc)": {
+            "provider": "iShares",
+            "isin": null
+        },
+        "iShares Global Clean Energy Transition UCITS ETF USD (Dist)": {
+            "provider": "iShares",
+            "isin": null
+        },
+        "iShares MSCI China UCITS ETF USD (Acc)": {
+            "provider": "iShares",
+            "isin": null
+        },
+        "Amundi MSCI China UCITS ETF Acc": {
+            "provider": "Amundi",
+            "isin": null
+        },
+        "Amundi MSCI New Energy UCITS ETF Dist": {
+            "provider": "Amundi",
+            "isin": null
+        },
+        "Amundi MSCI World V UCITS ETF Acc": {
+            "provider": "Amundi",
+            "isin": null
+        },
+        "Amundi Nasdaq-100 II UCITS ETF Acc": {
+            "provider": "Amundi",
+            "isin": null
+        },
+        "Xtrackers MSCI Africa Top 50 Swap UCITS ETF 1C": {
+            "provider": "Xtrackers",
+            "isin": "LU0592217524"
+        }
+    },
+    "fundProviders": {
+        "Sparindex": {
+            "logo": "/securities/funds/Sparindex.png",
+            "name": "Sparindex"
+        },
+        "Nordnet": {
+            "logo": "/securities/funds/Nordnet.png",
+            "name": "Nordnet"
+        },
+        "Maj Invest": {
+            "logo": "/securities/funds/Maj-Invest.png",
+            "name": "Maj Invest"
+        }
+    },
+    "funds": {
+        "Sparindex INDEX Globale Aktier KL": {
+            "provider": "Sparindex",
+            "isin": "DK0060747822"
+        },
+        "Sparindex INDEX USA Growth KL": {
+            "provider": "Sparindex",
+            "isin": "DK0010298272"
+        },
+        "Sparindex INDEX Europa Growth KL": {
+            "provider": "Sparindex",
+            "isin": "DK0010297548"
+        },
+        "Sparindex INDEX USA Small Cap KL": {
+            "provider": "Sparindex",
+            "isin": "DK0010298355"
+        },
+        "Sparindex INDEX OMX C25 KL": {
+            "provider": "Sparindex",
+            "isin": null
+        },
+        "Sparindex INDEX DJ BinClWld KL": {
+            "provider": "Sparindex",
+            "isin": null
+        },
+        "Nordnet Danmark Indeks A": {
+            "provider": "Nordnet",
+            "isin": null
+        },
+        "Nordnet Europa Indeks DKK": {
+            "provider": "Nordnet",
+            "isin": null
+        },
+        "Nordnet Nye Markeder Indeks": {
+            "provider": "Nordnet",
+            "isin": null
+        },
+        "Nordnet Teknologi Indeks DKK": {
+            "provider": "Nordnet",
+            "isin": "IE00BNNLSN94"
+        },
+        "Nordnet USA Indeks DKK": {
+            "provider": "Nordnet",
+            "isin": null
+        },
+        "Maj Invest Vækstaktier": {
+            "provider": "Maj Invest",
+            "isin": null
+        }
+    },
+    "fallback": "/securities/fallback.svg"
+}

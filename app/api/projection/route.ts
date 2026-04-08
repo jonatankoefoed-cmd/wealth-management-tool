@@ -1,6 +1,10 @@
 import { createHousingPurchaseModule, runProjection, type ProjectionInput } from "@/src/projection";
-import { loadHousingRules, type HousingPurchaseInput } from "@/src/housing";
+import { createDebtModule, type DebtInput } from "@/src/projection/modules/debt";
+import { createPortfolioModule, type HoldingInput } from "@/src/projection/modules/portfolio";
+import { loadHousingRules } from "@/src/housing/rules.server";
+import { type HousingPurchaseInput } from "@/src/housing";
 import { fail, ok } from "@/app/api/_lib/response";
+import { createDefaultHousingInput, normalizeHousingInput } from "@/src/housing/defaults";
 
 interface ProjectionRequest {
   startMonth: string;
@@ -9,50 +13,21 @@ interface ProjectionRequest {
   startingBalanceSheet: {
     cash: number;
     portfolioValue: number;
+    otherLiabilities?: number;
   };
   baseline: {
     monthlyDisposableIncomeBeforeHousing: number;
     monthlyNonHousingExpenses: number;
+    annualIncomeIncreasePercent?: number;
   };
   housingInput?: HousingPurchaseInput;
+  debts?: DebtInput[];
+  holdings?: HoldingInput[];
+  monthlySavingsContribution?: number;
 }
 
 function defaultHousingInput(): HousingPurchaseInput {
-  return {
-    year: 2026,
-    purchase: {
-      price: 3_000_000,
-      downPaymentCash: 300_000,
-      closeDate: "2026-04-15",
-    },
-    financing: {
-      mortgage: {
-        enabled: true,
-        termYears: 30,
-        amortizationProfile: "FULL",
-        bondRateNominalAnnual: 0.04,
-        contributionRateAnnual: 0.0075,
-        paymentsPerYear: 12,
-      },
-      bankLoan: {
-        enabled: true,
-        rateNominalAnnual: 0.065,
-        termYears: 10,
-        paymentsPerYear: 12,
-      },
-    },
-    transactionCosts: {
-      includeDefaultCosts: true,
-      customCosts: [],
-    },
-    budgetIntegration: {
-      monthlyDisposableIncomeBeforeHousing: 35_000,
-      monthlyHousingRunningCosts: 4_000,
-    },
-    scenarioMeta: {
-      scenarioId: "projection_housing",
-    },
-  };
+  return normalizeHousingInput(createDefaultHousingInput(2026));
 }
 
 function loadRulesOrExample(year: number) {
@@ -82,6 +57,9 @@ export async function GET(): Promise<Response> {
           monthlyNonHousingExpenses: 20_000,
         },
         housingInput: defaultHousingInput(),
+        debts: [],
+        holdings: [],
+        monthlySavingsContribution: 5000,
       },
     });
   } catch (error) {
@@ -95,10 +73,24 @@ export async function POST(request: Request): Promise<Response> {
 
     const modules = [] as ProjectionInput["modules"];
 
+    // 1. Housing Module
     if (body.includeHousing) {
-      const housingInput = body.housingInput ?? defaultHousingInput();
+      const housingInput = normalizeHousingInput(body.housingInput ?? defaultHousingInput());
       const rules = loadRulesOrExample(housingInput.year);
       modules.push(createHousingPurchaseModule({ input: housingInput, rules }));
+    }
+
+    // 2. Debt Module
+    if (body.debts && body.debts.length > 0) {
+      modules.push(createDebtModule({ debts: body.debts }));
+    }
+
+    // 3. Portfolio Module
+    if (body.holdings && body.holdings.length > 0) {
+      modules.push(createPortfolioModule({
+        holdings: body.holdings,
+        monthlyContribution: body.monthlySavingsContribution || 0
+      }));
     }
 
     const input: ProjectionInput = {

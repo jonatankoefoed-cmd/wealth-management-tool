@@ -1,0 +1,218 @@
+{
+    "meta": {
+        "taxYear": 2026,
+        "version": "1.0.0",
+        "lastUpdated": "2026-02-08",
+        "sources": [
+            "https://skat.dk/borger/satser-og-beloebsgraenser",
+            "https://skat.dk/borger/satser-og-beloebsgraenser/personskat-og-indkomstskat",
+            "https://skm.dk/skattetal/satser/2026"
+        ]
+    },
+    "amContribution": {
+        "rate": 0.08,
+        "description": "Arbejdsmarkedsbidrag - 8% af AM-pligtig indkomst"
+    },
+    "personal": {
+        "personalAllowance": 54100,
+        "personalAllowanceDescription": "Personfradrag jf. Personskatteloven §10",
+        "employmentDeduction": {
+            "rate": 0.1275,
+            "maxAmount": 63300,
+            "description": "Beskæftigelsesfradrag - 12,75% af AM-grundlag, max 63.300 kr"
+        },
+        "seniorEmploymentDeduction": {
+            "rate": 0.014,
+            "maxAmount": 6100,
+            "description": "Ekstra beskæftigelsesfradrag til seniorer - 1,4% af AM-indkomst, max 6.100 kr"
+        },
+        "jobDeduction": {
+            "amount": 3100,
+            "description": "Jobfradrag"
+        },
+        "bottomTax": {
+            "rate": 0.1201,
+            "description": "Bundskat - 12,01% af personlig indkomst over personfradrag"
+        },
+        "middleTax": {
+            "rate": 0.075,
+            "threshold": 641200,
+            "thresholdBeforeAM": 696956,
+            "description": "Mellemskat (NY fra 2026) - 7,5% af personlig indkomst over 696.956 kr før AM (641.200 efter AM)"
+        },
+        "topTax": {
+            "rate": 0.075,
+            "threshold": 777900,
+            "thresholdBeforeAM": 845543,
+            "description": "Topskat - 7,5% af personlig indkomst over 845.543 kr før AM (777.900 efter AM)"
+        },
+        "topTopTax": {
+            "rate": 0.05,
+            "threshold": 2592700,
+            "thresholdBeforeAM": 2818152,
+            "description": "Top-topskat (NY fra 2026) - 5% af personlig indkomst over 2.818.152 kr før AM"
+        },
+        "taxCeilings": {
+            "bottomAndMiddle": 0.4457,
+            "withTopTax": 0.5207,
+            "withTopTopTax": 0.5707,
+            "capitalIncome": 0.42,
+            "description": "Skatteloft for personlig indkomst (ekskl. kirkeskat)"
+        }
+    },
+    "capitalIncome": {
+        "positive": {
+            "allowanceForTopTax": 55000,
+            "allowanceForTopTaxMarried": 110000,
+            "description": "Bundfradrag i positiv nettokapitalindkomst i topskattegrundlag"
+        },
+        "negative": {
+            "fullDeductionLimit": 50000,
+            "fullDeductionLimitMarried": 100000,
+            "fullDeductionRate": 0.33,
+            "reducedDeductionRate": 0.25,
+            "description": "Fradragsværdi: 33% op til grænsen, 25% derover"
+        },
+        "model": "INTEGRATED_WITH_PERSONAL",
+        "notes": "Positiv nettokapitalindkomst indgår i grundlag for bundskat, mellemskat, topskat og toptopskat"
+    },
+    "equityIncome": {
+        "threshold": 79400,
+        "thresholdMarried": 158800,
+        "rateLow": 0.27,
+        "rateHigh": 0.42,
+        "description": "Aktieindkomst beskattes progressivt: 27% op til 79.400 kr, 42% derover. For ægtefæller fordobles grænsen."
+    },
+    "ask": {
+        "rate": 0.17,
+        "depositCap": 174200,
+        "taxationPrinciple": "LAGER",
+        "description": "Aktiesparekonto: 17% lagerbeskatning af afkast, max indskud 174.200 kr"
+    },
+    "pal": {
+        "rate": 0.153,
+        "taxationPrinciple": "LAGER",
+        "description": "Pensionsafkastskat (PAL): 15,3% lagerbeskatning af pensionsafkast"
+    },
+    "corporate": {
+        "rate": 0.22,
+        "description": "Selskabsskat: 22% af skattepligtigt resultat"
+    },
+    "markToMarket": {
+        "classification": {
+            "skatsPositivliste": {
+                "equityBased": {
+                    "incomeType": "EQUITY_INCOME",
+                    "taxationPrinciple": "LAGER",
+                    "description": "Aktiebaserede ETF/investeringsselskaber på SKATs positivliste beskattes som aktieindkomst efter lagerprincip"
+                }
+            },
+            "notOnPositivliste": {
+                "default": {
+                    "incomeType": "CAPITAL_INCOME",
+                    "taxationPrinciple": "LAGER",
+                    "description": "ETF/investeringsselskaber IKKE på SKATs positivliste beskattes som kapitalindkomst efter lagerprincip"
+                }
+            },
+            "udloddendeInvesteringsforeninger": {
+                "incomeType": "EQUITY_INCOME",
+                "taxationPrinciple": "REALISATION",
+                "description": "Danske udloddende, aktiebaserede investeringsforeninger beskattes som aktieindkomst efter realisationsprincip"
+            }
+        },
+        "defaultTreatment": "CAPITAL_INCOME",
+        "notes": "Adapter skal klassificere hvert instrument baseret på SKATs positivliste og type"
+    },
+    "instrumentClassification": {
+        "rules": [
+            {
+                "type": "Danske aktier (børsnoterede)",
+                "incomeType": "EQUITY_INCOME",
+                "taxationPrinciple": "REALISATION"
+            },
+            {
+                "type": "Udenlandske aktier (børsnoterede)",
+                "incomeType": "EQUITY_INCOME",
+                "taxationPrinciple": "REALISATION"
+            },
+            {
+                "type": "Investeringsforening (udloddende, aktiebaseret)",
+                "incomeType": "EQUITY_INCOME",
+                "taxationPrinciple": "REALISATION"
+            },
+            {
+                "type": "ETF (aktiebaseret på Skats liste)",
+                "incomeType": "EQUITY_INCOME",
+                "taxationPrinciple": "LAGER"
+            },
+            {
+                "type": "ETF (ikke på Skats liste)",
+                "incomeType": "CAPITAL_INCOME",
+                "taxationPrinciple": "LAGER"
+            },
+            {
+                "type": "Investeringsselskab (aktiebaseret på Skats liste)",
+                "incomeType": "EQUITY_INCOME",
+                "taxationPrinciple": "LAGER"
+            },
+            {
+                "type": "Investeringsselskab (ikke på Skats liste)",
+                "incomeType": "CAPITAL_INCOME",
+                "taxationPrinciple": "LAGER"
+            },
+            {
+                "type": "Obligationsfond / renteprodukt",
+                "incomeType": "CAPITAL_INCOME",
+                "taxationPrinciple": "LAGER"
+            },
+            {
+                "type": "Private Equity (unoterede aktier)",
+                "incomeType": "EQUITY_INCOME",
+                "taxationPrinciple": "REALISATION"
+            }
+        ]
+    },
+    "dividendWithholding": {
+        "domestic": {
+            "rate": 0.27,
+            "description": "Kildeskat på danske udbytter"
+        },
+        "foreign": {
+            "usWithTreaty": {
+                "rate": 0.15,
+                "requiresForm": "W-8BEN",
+                "description": "USA: 15% efter dobbeltbeskatningsaftale (kræver W-8BEN)"
+            },
+            "defaultWithholding": {
+                "notes": "Varierer efter land og dobbeltbeskatningsaftale"
+            }
+        },
+        "creditMethod": "Udenlandsk kildeskat kan modregnes i dansk skat på samme indkomst"
+    },
+    "costBasisMethod": {
+        "primary": "AVERAGE_COST",
+        "description": "Gennemsnitsmetoden (GAK) er hovedregel for aktier og investeringsbeviser",
+        "fifoException": "FIFO anvendes for aktier ejet pr. 31/12-2005 (overgangsregel)",
+        "notes": "Anskaffelsessum opdateres ved hver køb: ny GAK = (gammel GAK * gammelt antal + købesum) / nyt antal"
+    },
+    "lossCarryForward": {
+        "equityIncome": {
+            "allowedAgainst": "EQUITY_INCOME",
+            "expiryYears": null,
+            "description": "Tab på aktier kan fremføres og modregnes i fremtidige aktiegevinster og udbytter"
+        },
+        "askLosses": {
+            "allowedAgainst": "ASK_GAINS",
+            "notes": "Tab i ASK fremføres til modregning i fremtidigt ASK-afkast"
+        },
+        "reportingDeadline": {
+            "date": "1. juli året efter",
+            "description": "SKAT skal have oplysning om køb senest 1. juli året efter for at tab kan fradrages"
+        }
+    },
+    "defaultMunicipalRates": {
+        "averageMunicipalRate": 0.251,
+        "averageChurchRate": 0.0074,
+        "notes": "Gennemsnitlige satser - faktiske satser varierer efter kommune"
+    }
+}

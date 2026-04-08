@@ -1,61 +1,31 @@
-const dkkFormatter = new Intl.NumberFormat("da-DK", {
-  style: "currency",
-  currency: "DKK",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+/**
+ * Shared Formatting Utilities
+ * 
+ * Ensures consistent 'da-DK' formatting across the application.
+ */
 
-const compactDkkFormatter = new Intl.NumberFormat("da-DK", {
-  style: "currency",
-  currency: "DKK",
-  notation: "compact",
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
+export const formatCurrency = (value: number, currency: string = "DKK"): string => {
+  return new Intl.NumberFormat('da-DK', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
 
-const numberFormatter = new Intl.NumberFormat("da-DK", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
+export const formatPercent = (value: number, decimals: number = 1): string => {
+  return new Intl.NumberFormat('da-DK', {
+    style: 'percent',
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
+};
 
-const quantityFormatter = new Intl.NumberFormat("da-DK", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 6,
-});
+export const formatAmount = (value: number): string => {
+  return new Intl.NumberFormat('da-DK', {
+    maximumFractionDigits: 0,
+  }).format(value);
+};
 
-export function asNumber(value: number | string | null | undefined): number {
-  if (value === null || value === undefined) {
-    return 0;
-  }
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return value;
-}
-
-export function formatDKK(value: number | string | null | undefined): string {
-  return dkkFormatter.format(asNumber(value));
-}
-
-export function formatCompactDKK(value: number | string | null | undefined): string {
-  return compactDkkFormatter.format(asNumber(value));
-}
-
-export function formatNumber(value: number | string | null | undefined): string {
-  return numberFormatter.format(asNumber(value));
-}
-
-export function formatQuantity(value: number | string | null | undefined): string {
-  return quantityFormatter.format(asNumber(value));
-}
-
-export function formatPercent(value: number | string | null | undefined, digits = 2): string {
-  const numeric = asNumber(value);
-  return `${numeric.toFixed(digits)}%`;
-}
-
-export function monthKeyNow(): string {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-}
+// Aliases for backward compatibility
+export const formatDKK = formatCurrency;
+export const formatNumber = formatAmount;

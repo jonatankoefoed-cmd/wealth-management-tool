@@ -43,7 +43,8 @@ const config: Config = {
         float: "0 18px 55px -30px rgba(51, 46, 45, 0.30)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        sans: ["var(--font-manrope)", "system-ui", "-apple-system", "sans-serif"],
+        serif: ["var(--font-display)", "Georgia", "serif"],
       },
       transitionDuration: {
         180: "180ms",
@@ -53,9 +54,24 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "fade-in-scale": {
+          "0%": { opacity: "0", transform: "scale(0.97)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 220ms ease-out",
+        "fade-in-scale": "fade-in-scale 280ms ease-out",
+        "shimmer": "shimmer 2s linear infinite",
+        "pulse-soft": "pulse-soft 2s ease-in-out infinite",
       },
     },
   },

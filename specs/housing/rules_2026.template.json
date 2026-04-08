@@ -1,0 +1,20 @@
+{
+    "year": 2026,
+    "minDownPaymentPct": 0.05,
+    "mortgageLtvMax": 0.80,
+    "deedRegistration": {
+        "fixedFee": null,
+        "rateOfPrice": null,
+        "rounding": "NEAREST_100"
+    },
+    "pledgeRegistration": {
+        "fixedFee": null,
+        "rateOfPrincipal": null,
+        "rounding": "NEAREST_100"
+    },
+    "defaults": {
+        "buyerAttorneyFee": 0,
+        "bankEstablishmentFee": 0,
+        "valuationFee": 0
+    }
+}

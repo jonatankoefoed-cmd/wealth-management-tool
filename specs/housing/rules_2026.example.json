@@ -1,0 +1,42 @@
+{
+    "year": 2026,
+    "minDownPaymentPct": 0.05,
+    "mortgageLtvMax": 0.80,
+    "deedRegistration": {
+        "fixedFee": 1850,
+        "rateOfPrice": 0.006,
+        "rounding": "NEAREST_100"
+    },
+    "pledgeRegistration": {
+        "fixedFee": 1850,
+        "rateOfPrincipal": 0.014,
+        "rounding": "NEAREST_100"
+    },
+    "defaults": {
+        "buyerAttorneyFee": 15000,
+        "bankEstablishmentFee": 5000,
+        "valuationFee": 3000,
+        "propertyTaxRate": 0.0051,
+        "landTaxRate": 0.007,
+        "maintenanceRateAnnual": 0.01
+    },
+    "mortgageRules": {
+        "tieredContributions": [
+            {
+                "ltvFrom": 0,
+                "ltvTo": 0.40,
+                "rate": 0.0050
+            },
+            {
+                "ltvFrom": 0.40,
+                "ltvTo": 0.60,
+                "rate": 0.0085
+            },
+            {
+                "ltvFrom": 0.60,
+                "ltvTo": 0.80,
+                "rate": 0.0125
+            }
+        ]
+    }
+}

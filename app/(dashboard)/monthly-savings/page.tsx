@@ -1,52 +1,25 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import { CircleAlert, FlaskConical } from "lucide-react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExplainDrawer, type ExplainAudit } from "@/components/shared/explain-drawer";
-import { Icon } from "@/components/ui/icon";
 import { SectionLoading } from "@/components/shared/section-loading";
 import { StatusChip } from "@/components/shared/status-chip";
-import { Table, TableShell, TableWrap, TD, TH, THead, TR } from "@/components/ui/table";
-import { formatDKK, formatNumber, formatPercent } from "@/lib/format";
+import { EmptyState } from "@/components/shared/empty-state";
+import { DonutChart, type DonutChartDataPoint } from "@/components/charts/donut-chart";
+import { WealthBarChart, type BarChartDataPoint } from "@/components/charts/bar-chart";
+import { KpiCard } from "@/components/dashboard/kpi-card";
+import { formatDKK } from "@/lib/format";
 import { fetchJson } from "@/lib/client";
+import { DataDebugToggle } from "@/components/debug/data-debug-toggle";
+import { PiggyBank, Calendar, TrendingUp, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { ALLOCATION_PALETTE } from "@/components/charts/chart-theme";
 
-interface InstrumentRef {
+interface AllocationItem {
+  instrumentId: string;
+  ticker: string;
   name: string;
-  ticker: string | null;
-}
-
-interface PlanLine {
-  id: string;
-  instrumentId: string;
-  weightPct: string | number;
-  sortOrder: number;
-  instrument: InstrumentRef;
-}
-
-interface RecurringPlan {
-  id: string;
-  name: string | null;
-  amountDkk: string | number;
-  dayOfMonth: number;
-  status: "ACTIVE" | "PAUSED";
-  lines: PlanLine[];
-}
-
-interface ExecutionLine {
-  id: string;
-  instrumentId: string;
-  weightPct: string | number;
-  targetAmount: string | number;
-  quotePrice: string | number | null;
-  quantity: string | number | null;
-  status: string;
-  failureReason: string | null;
-  manualPriceOverride: string | number | null;
-  manualNote: string | null;
-  instrument: InstrumentRef;
+  percentage: number;
 }
 
 interface ExecutionRun {
@@ -55,459 +28,293 @@ interface ExecutionRun {
   targetMonth: string | null;
   scheduledDate: string;
   executedAt: string | null;
-  auditJson: ExplainAudit | null;
-  lines: ExecutionLine[];
-}
-
-interface LineQuote {
-  instrumentId: string;
-  status: "OK" | "MISSING" | "ERROR";
-  price: number | null;
-  source: string;
-  asOf: string;
-  notes: string | null;
+  totalAmount: number;
 }
 
 interface MonthlySavingsResponse {
-  plan: RecurringPlan | null;
-  runs: ExecutionRun[];
-  lineQuotes: LineQuote[];
-  currentTargetMonth: string;
-  educationalPanel: {
-    title: string;
-    body: string;
-  };
+  plan: {
+    id: string;
+    name: string;
+    monthlyAmount: number;
+    dayOfMonth: number;
+    enabled: boolean;
+    allocation: AllocationItem[];
+  } | null;
+  executions: ExecutionRun[];
+  nextExecution: {
+    scheduledDate: string;
+    amount: number;
+  } | null;
 }
 
-interface PlanDraft {
-  amountDkk: number;
-  dayOfMonth: number;
-  lines: Array<{
-    instrumentId: string;
-    weightPct: number;
-    sortOrder: number;
-  }>;
-}
-
-function asNumber(value: string | number | null | undefined): number {
-  if (value === null || value === undefined) {
-    return 0;
-  }
-  return typeof value === "number" ? value : Number(value);
-}
-
-export default function MonthlySavingsPage(): JSX.Element {
+export default function MonthlySavingsPage() {
   const [data, setData] = useState<MonthlySavingsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [overrideLoadingId, setOverrideLoadingId] = useState<string | null>(null);
-  const [overrideValues, setOverrideValues] = useState<Record<string, { price: string; note: string }>>({});
-  const [draft, setDraft] = useState<PlanDraft | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  async function load(): Promise<void> {
+  useEffect(() => { setMounted(true); }, []);
+
+  const fetchData = useCallback(async () => {
     try {
       const payload = await fetchJson<MonthlySavingsResponse>("/api/monthly-savings");
       setData(payload);
-      if (payload.plan) {
-        setDraft({
-          amountDkk: asNumber(payload.plan.amountDkk),
-          dayOfMonth: payload.plan.dayOfMonth,
-          lines: payload.plan.lines.map((line) => ({
-            instrumentId: line.instrumentId,
-            weightPct: asNumber(line.weightPct),
-            sortOrder: line.sortOrder,
-          })),
-        });
-      }
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load monthly savings");
+      setError(err instanceof Error ? err.message : "Kunne ikke hente månedsopsparing");
+    } finally {
+      setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    let mounted = true;
-    load()
-      .finally(() => {
-        if (mounted) {
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        // handled in load
-      });
-
-    return () => {
-      mounted = false;
-    };
   }, []);
 
-  const latestRun = useMemo(() => {
-    if (!data || data.runs.length === 0) {
-      return null;
-    }
-    return data.runs[0];
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Convert allocation to chart data
+  const allocationChartData = useMemo<DonutChartDataPoint[]>(() => {
+    if (!data?.plan?.allocation) return [];
+    return data.plan.allocation.map((item, index) => ({
+      name: item.ticker || item.name,
+      value: item.percentage,
+      color: ALLOCATION_PALETTE[index % ALLOCATION_PALETTE.length],
+    }));
   }, [data]);
 
-  const totalWeight = useMemo(() => {
-    if (!draft) {
-      return 0;
-    }
-    return draft.lines.reduce((sum, line) => sum + line.weightPct, 0);
-  }, [draft]);
+  // Execution history chart data
+  const executionChartData = useMemo<BarChartDataPoint[]>(() => {
+    if (!data?.executions) return [];
+    return data.executions
+      .filter((exec) => exec.status === "COMPLETED")
+      .slice(0, 6)
+      .reverse()
+      .map((exec) => ({
+        label: exec.targetMonth?.slice(5) ?? exec.scheduledDate.slice(5, 7),
+        value: exec.totalAmount,
+      }));
+  }, [data]);
 
-  const selectedRunAudit = latestRun?.auditJson ?? {
-    title: "Execution audit",
-    notes: ["No auditJson found for this run."],
-    steps: [],
+  // Calculate totals
+  const totalInvested = useMemo(() => {
+    if (!data?.executions) return 0;
+    return data.executions
+      .filter((exec) => exec.status === "COMPLETED")
+      .reduce((sum, exec) => sum + exec.totalAmount, 0);
+  }, [data]);
+
+  const completedExecutions = useMemo(() => {
+    return (data?.executions || []).filter((exec) => exec.status === "COMPLETED").length;
+  }, [data]);
+
+  const formatDate = (dateStr: string) => {
+    if (!mounted) return "";
+    return new Date(dateStr).toLocaleDateString("da-DK");
   };
 
-  if (loading) {
-    return <SectionLoading />;
-  }
+  if (!mounted) return <SectionLoading />;
+  if (loading) return <SectionLoading />;
 
   if (error || !data) {
     return (
       <Card>
-        <CardContent className="p-6 text-sm text-brand-danger">{error ?? "Unable to load monthly savings"}</CardContent>
+        <CardContent className="p-6 text-sm text-brand-danger">
+          {error ?? "Kunne ikke indlæse månedsopsparing"}
+        </CardContent>
       </Card>
     );
   }
 
-  if (!data.plan || !draft) {
+  if (!data.plan) {
     return (
-      <Card>
-        <CardContent className="p-6 text-sm text-brand-text2">No recurring investment plan found.</CardContent>
-      </Card>
+      <EmptyState
+        title="Ingen opsparingsplan fundet"
+        description="Du har ikke oprettet en månedsopsparingsplan endnu."
+        icon={PiggyBank}
+      />
     );
   }
-
-  const quoteByInstrument = new Map(data.lineQuotes.map((quote) => [quote.instrumentId, quote]));
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <section className="grid gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
+      {/* KPI Cards */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          title="Månedligt beløb"
+          value={formatDKK(data.plan.monthlyAmount)}
+          icon={PiggyBank}
+          size="large"
+        />
+        <KpiCard
+          title="Investeret i alt"
+          value={formatDKK(totalInvested)}
+          icon={TrendingUp}
+        />
+        <KpiCard
+          title="Gennemførte kørsler"
+          value={completedExecutions.toString()}
+          icon={CheckCircle}
+        />
+        <KpiCard
+          title="Næste kørsel"
+          value={data.nextExecution ? formatDate(data.nextExecution.scheduledDate) : "-"}
+          icon={Calendar}
+        />
+      </section>
+
+      {/* Main Charts */}
+      <section className="grid gap-4 lg:grid-cols-2">
+        {/* Allocation Donut */}
+        <Card>
           <CardHeader>
-            <CardTitle>Plan Configuration</CardTitle>
-            <CardDescription>Editable inputs for monthly shadow execution</CardDescription>
+            <CardTitle className="text-base">Investeringsfordeling</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="text-sm text-brand-text2">
-                Amount (DKK)
-                <input
-                  type="number"
-                  value={draft.amountDkk}
-                  className="mt-1 w-full"
-                  onChange={(event) =>
-                    setDraft((current) =>
-                      current
-                        ? {
-                            ...current,
-                            amountDkk: Number(event.target.value),
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-              <label className="text-sm text-brand-text2">
-                Day of month
-                <input
-                  type="number"
-                  min={1}
-                  max={31}
-                  value={draft.dayOfMonth}
-                  className="mt-1 w-full"
-                  onChange={(event) =>
-                    setDraft((current) =>
-                      current
-                        ? {
-                            ...current,
-                            dayOfMonth: Number(event.target.value),
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-brand-text1">Allocation lines</p>
-              {data.plan.lines.map((line, index) => {
-                const lineDraft = draft.lines[index];
-                const quote = quoteByInstrument.get(line.instrumentId);
-
-                return (
-                  <div
-                    key={line.id}
-                    className="grid gap-3 rounded-md border border-brand-border bg-brand-surface p-3 md:grid-cols-[1fr_120px_130px]"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-brand-text1">{line.instrument.name}</p>
-                      <p className="text-xs text-brand-text2">{line.instrument.ticker ?? "No ticker"}</p>
-                    </div>
-                    <label className="text-sm text-brand-text2">
-                      Weight %
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        step={0.1}
-                        value={lineDraft?.weightPct ?? 0}
-                        className="mt-1 w-full"
-                        onChange={(event) =>
-                          setDraft((current) => {
-                            if (!current) {
-                              return current;
-                            }
-                            const nextLines = [...current.lines];
-                            nextLines[index] = {
-                              ...nextLines[index],
-                              weightPct: Number(event.target.value),
-                            };
-                            return {
-                              ...current,
-                              lines: nextLines,
-                            };
-                          })
-                        }
-                      />
-                    </label>
-                    <div className="text-sm text-brand-text2">
-                      <p>Price rule</p>
-                      <p className="mt-1 text-xs">
-                        {quote?.status === "OK"
-                          ? `Using ${formatDKK(quote.price)} (${quote.source})`
-                          : "Manual override required"}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-brand-border bg-brand-surface px-3 py-2">
-              <p className="text-sm text-brand-text2">
-                Total weight: <span className="font-medium tabular-nums text-brand-text1">{formatPercent(totalWeight, 2)}</span>
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  disabled={running}
-                  onClick={async () => {
-                    try {
-                      setRunning(true);
-                      await fetchJson<{ result: unknown }>("/api/monthly-savings/run", {
-                        method: "POST",
-                        body: JSON.stringify({
-                          planId: data.plan?.id,
-                          targetMonth: data.currentTargetMonth,
-                          force: true,
-                        }),
-                      });
-                      await load();
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : "Execution failed");
-                    } finally {
-                      setRunning(false);
-                    }
-                  }}
-                >
-                  Run {data.currentTargetMonth}
-                </Button>
-                <Button
-                  variant="primary"
-                  disabled={saving}
-                  onClick={async () => {
-                    try {
-                      setSaving(true);
-                      await fetchJson<{ updated: unknown }>("/api/monthly-savings/plan", {
-                        method: "PATCH",
-                        body: JSON.stringify({
-                          planId: data.plan?.id,
-                          amountDkk: draft.amountDkk,
-                          dayOfMonth: draft.dayOfMonth,
-                          lines: draft.lines,
-                        }),
-                      });
-                      await load();
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : "Save failed");
-                    } finally {
-                      setSaving(false);
-                    }
-                  }}
-                >
-                  Save Plan
-                </Button>
-              </div>
-            </div>
+          <CardContent>
+            <DonutChart
+              data={allocationChartData}
+              height={280}
+              innerRadius={55}
+              outerRadius={85}
+              showLegend={true}
+              centerValue={`${data.plan.allocation?.length ?? 0}`}
+              centerLabel="Instrumenter"
+              valueUnit="%"
+            />
           </CardContent>
         </Card>
 
+        {/* Execution History Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>{data.educationalPanel.title}</CardTitle>
-            <CardDescription>Educational note</CardDescription>
+            <CardTitle className="text-base">Kørselshistorik</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-brand-surface">
-              <Icon icon={FlaskConical} size={18} color="accent" />
-            </div>
-            <p className="text-sm text-brand-text2">{data.educationalPanel.body}</p>
-            <Image
-              src="/assets/illustrations/empty-scenarios.svg"
-              alt="Shadow execution concept"
-              width={320}
-              height={180}
-              className="mt-4 w-full rounded-md border border-brand-border"
-            />
+            {executionChartData.length > 0 ? (
+              <WealthBarChart
+                data={executionChartData}
+                height={280}
+                primaryLabel="Investeret"
+              />
+            ) : (
+              <div className="flex h-[280px] items-center justify-center text-sm text-brand-text3">
+                Ingen kørsler gennemført endnu
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>
 
+      {/* Plan Details */}
       <Card>
         <CardHeader>
-          <CardTitle>Execution History</CardTitle>
-          <CardDescription>ExecutionRun records with auditable line outcomes</CardDescription>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">{data.plan.name}</CardTitle>
+            <StatusChip status={data.plan.enabled ? "SUCCESS" : "WARNING"} />
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <TableShell className="shadow-none">
-            <TableWrap>
-              <Table>
-                <THead>
-                  <tr>
-                    <TH>Target Month</TH>
-                    <TH>Status</TH>
-                    <TH>Scheduled</TH>
-                    <TH className="text-right">Lines</TH>
-                    <TH>Audit</TH>
-                  </tr>
-                </THead>
-                <tbody>
-                  {data.runs.map((run) => (
-                    <TR key={run.id}>
-                      <TD className="tabular-nums">{run.targetMonth ?? "-"}</TD>
-                      <TD>
-                        <StatusChip status={run.status} />
-                      </TD>
-                      <TD className="tabular-nums text-brand-text2">
-                        {new Date(run.scheduledDate).toLocaleDateString("da-DK")}
-                      </TD>
-                      <TD className="text-right tabular-nums">{run.lines.length}</TD>
-                      <TD>
-                        <ExplainDrawer audit={run.auditJson ?? selectedRunAudit} />
-                      </TD>
-                    </TR>
-                  ))}
-                </tbody>
-              </Table>
-            </TableWrap>
-          </TableShell>
-
-          {latestRun ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-brand-text1">Latest run lines ({latestRun.targetMonth})</h3>
-                <StatusChip status={latestRun.status} />
-              </div>
-              {latestRun.lines.map((line) => (
-                <div
-                  key={line.id}
-                  className="rounded-md border border-brand-border bg-brand-surface p-3"
-                >
-                  <div className="grid gap-3 lg:grid-cols-[1fr_160px_160px_1fr]">
-                    <div>
-                      <p className="text-sm font-medium text-brand-text1">{line.instrument.name}</p>
-                      <p className="text-xs text-brand-text2">{line.instrument.ticker ?? "No ticker"}</p>
-                    </div>
-                    <p className="text-sm tabular-nums text-brand-text2">
-                      Target: <span className="text-brand-text1">{formatDKK(line.targetAmount)}</span>
-                    </p>
-                    <p className="text-sm tabular-nums text-brand-text2">
-                      Quote: <span className="text-brand-text1">{line.quotePrice ? formatDKK(line.quotePrice) : "-"}</span>
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <StatusChip status={line.status} />
-                        {line.failureReason ? (
-                          <span className="text-xs text-brand-warning">{line.failureReason}</span>
-                        ) : null}
-                      </div>
-                      <div className="grid gap-2 md:grid-cols-[120px_1fr_auto]">
-                        <input
-                          type="number"
-                          step={0.01}
-                          placeholder="Manual price"
-                          value={overrideValues[line.id]?.price ?? ""}
-                          onChange={(event) =>
-                            setOverrideValues((current) => ({
-                              ...current,
-                              [line.id]: {
-                                price: event.target.value,
-                                note: current[line.id]?.note ?? "",
-                              },
-                            }))
-                          }
-                        />
-                        <input
-                          type="text"
-                          placeholder="Note"
-                          value={overrideValues[line.id]?.note ?? ""}
-                          onChange={(event) =>
-                            setOverrideValues((current) => ({
-                              ...current,
-                              [line.id]: {
-                                note: event.target.value,
-                                price: current[line.id]?.price ?? "",
-                              },
-                            }))
-                          }
-                        />
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          disabled={overrideLoadingId === line.id || !(overrideValues[line.id]?.price ?? "")}
-                          onClick={async () => {
-                            try {
-                              setOverrideLoadingId(line.id);
-                              await fetchJson<{ result: unknown }>("/api/monthly-savings/manual-override", {
-                                method: "POST",
-                                body: JSON.stringify({
-                                  executionLineId: line.id,
-                                  manualPrice: Number(overrideValues[line.id]?.price ?? "0"),
-                                  note: overrideValues[line.id]?.note ?? "",
-                                }),
-                              });
-                              await load();
-                            } catch (err) {
-                              setError(err instanceof Error ? err.message : "Override failed");
-                            } finally {
-                              setOverrideLoadingId(null);
-                            }
-                          }}
-                        >
-                          Override
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-sm text-brand-text3">Månedligt beløb</p>
+              <p className="mt-1 font-semibold tabular-nums text-brand-text1">
+                {formatDKK(data.plan.monthlyAmount)}
+              </p>
             </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-md border border-brand-border bg-brand-surface p-3 text-sm text-brand-text2">
-              <Icon icon={CircleAlert} size={16} color="warning" />
-              No execution runs available yet.
+            <div>
+              <p className="text-sm text-brand-text3">Dag i måneden</p>
+              <p className="mt-1 font-semibold text-brand-text1">
+                {data.plan.dayOfMonth}. dag
+              </p>
             </div>
-          )}
+            <div>
+              <p className="text-sm text-brand-text3">Status</p>
+              <p className="mt-1 font-semibold text-brand-text1">
+                {data.plan.enabled ? "Aktiv" : "Inaktiv"}
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Allocation Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Allokeringsplan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {(data.plan.allocation || []).map((item, index) => (
+              <div key={item.instrumentId} className="flex items-center justify-between border-b border-brand-border/50 pb-3 last:border-0">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: ALLOCATION_PALETTE[index % ALLOCATION_PALETTE.length] }}
+                  />
+                  <div>
+                    <p className="font-medium text-brand-text1">{item.ticker}</p>
+                    <p className="text-xs text-brand-text3">{item.name}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold tabular-nums text-brand-text1">
+                    {item.percentage.toFixed(0)}%
+                  </p>
+                  <p className="text-xs tabular-nums text-brand-text3">
+                    {formatDKK(data.plan!.monthlyAmount * (item.percentage / 100))}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Execution History (Collapsible) */}
+      <Card>
+        <CardHeader className="cursor-pointer" onClick={() => setShowHistory(!showHistory)}>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Kørselshistorik</CardTitle>
+            {showHistory ? (
+              <ChevronUp className="h-5 w-5 text-brand-text3" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-brand-text3" />
+            )}
+          </div>
+        </CardHeader>
+        {showHistory && (
+          <CardContent className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-brand-border">
+                  <th className="py-2 text-left font-medium text-brand-text2">Dato</th>
+                  <th className="py-2 text-left font-medium text-brand-text2">Målmåned</th>
+                  <th className="py-2 text-right font-medium text-brand-text2">Beløb</th>
+                  <th className="py-2 text-right font-medium text-brand-text2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data.executions || []).map((exec) => (
+                  <tr key={exec.id} className="border-b border-brand-border/50">
+                    <td className="py-2 tabular-nums text-brand-text1">
+                      {exec.executedAt
+                        ? formatDate(exec.executedAt)
+                        : formatDate(exec.scheduledDate)}
+                    </td>
+                    <td className="py-2 text-brand-text2">{exec.targetMonth ?? "-"}</td>
+                    <td className="py-2 text-right tabular-nums font-medium text-brand-text1">
+                      {formatDKK(exec.totalAmount)}
+                    </td>
+                    <td className="py-2 text-right">
+                      <StatusChip status={exec.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        )}
+      </Card>
+
+      <DataDebugToggle source="/api/monthly-savings" data={data} />
     </div>
   );
 }

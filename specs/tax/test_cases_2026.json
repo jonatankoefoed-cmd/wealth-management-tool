@@ -1,0 +1,243 @@
+{
+    "meta": {
+        "taxYear": 2026,
+        "description": "Golden test cases for Danish tax engine verification",
+        "source": "dynamisk_skattemodel_2026.xlsx"
+    },
+    "testCases": [
+        {
+            "id": "personal-base-case",
+            "description": "Base case: 500.000 kr salary, no additional income",
+            "input": {
+                "taxYear": 2026,
+                "municipality": {
+                    "rate": 0.25,
+                    "churchRate": 0.007
+                },
+                "personalIncome": {
+                    "salaryGross": 500000
+                }
+            },
+            "expected": {
+                "amBidrag": 40000,
+                "incomeAfterAM": 460000,
+                "employmentDeduction": 63300,
+                "municipalTax": 85650,
+                "churchTax": 2398.2,
+                "bottomTax": 48748.59,
+                "middleTax": 0,
+                "topTax": 0,
+                "topTopTax": 0,
+                "jobDeduction": 3100,
+                "totalTax": 173696.79,
+                "netIncome": 326303.21,
+                "effectiveTaxRate": 0.347394
+            },
+            "tolerance": 1
+        },
+        {
+            "id": "personal-with-middle-tax",
+            "description": "High income: triggers mellemskat (7.5% over 641.200 kr)",
+            "input": {
+                "taxYear": 2026,
+                "municipality": {
+                    "rate": 0.25,
+                    "churchRate": 0.007
+                },
+                "personalIncome": {
+                    "salaryGross": 750000
+                }
+            },
+            "expected": {
+                "middleTax_gt": 0,
+                "comment": "Should trigger mellemskat as income after AM exceeds 641.200 kr"
+            }
+        },
+        {
+            "id": "personal-with-top-tax",
+            "description": "Very high income: triggers topskat (7.5% over 777.900 kr)",
+            "input": {
+                "taxYear": 2026,
+                "municipality": {
+                    "rate": 0.25,
+                    "churchRate": 0.007
+                },
+                "personalIncome": {
+                    "salaryGross": 1000000
+                }
+            },
+            "expected": {
+                "topTax_gt": 0,
+                "comment": "Should trigger topskat as income after AM exceeds 777.900 kr"
+            }
+        },
+        {
+            "id": "equity-under-threshold",
+            "description": "Equity income under 79.400 kr - 27% only",
+            "input": {
+                "taxYear": 2026,
+                "equityIncome": {
+                    "realizedGains": 40000,
+                    "dividends": 20000
+                }
+            },
+            "expected": {
+                "taxableEquityIncome": 60000,
+                "tier1Base": 60000,
+                "tier1Tax": 16200,
+                "tier2Base": 0,
+                "tier2Tax": 0,
+                "totalEquityTax": 16200,
+                "effectiveRate": 0.27
+            }
+        },
+        {
+            "id": "equity-over-threshold",
+            "description": "Equity income over 79.400 kr - progressive 27%/42%",
+            "input": {
+                "taxYear": 2026,
+                "equityIncome": {
+                    "realizedGains": 80000,
+                    "dividends": 50000
+                }
+            },
+            "expected": {
+                "taxableEquityIncome": 130000,
+                "tier1Base": 79400,
+                "tier1Tax": 21438,
+                "tier2Base": 50600,
+                "tier2Tax": 21252,
+                "totalEquityTax": 42690
+            }
+        },
+        {
+            "id": "equity-married-threshold",
+            "description": "Married couple: doubled threshold (158.800 kr)",
+            "input": {
+                "taxYear": 2026,
+                "isMarried": true,
+                "equityIncome": {
+                    "realizedGains": 100000,
+                    "dividends": 50000
+                }
+            },
+            "expected": {
+                "threshold": 158800,
+                "tier1Base": 150000,
+                "tier1Tax": 40500,
+                "tier2Base": 0,
+                "tier2Tax": 0,
+                "totalEquityTax": 40500,
+                "effectiveRate": 0.27
+            }
+        },
+        {
+            "id": "ask-positive-return",
+            "description": "ASK with positive return - 17% flat tax",
+            "input": {
+                "taxYear": 2026,
+                "ask": {
+                    "openingValue": 100000,
+                    "closingValue": 120000,
+                    "netDeposits": 0,
+                    "netWithdrawals": 0
+                }
+            },
+            "expected": {
+                "taxableReturn": 20000,
+                "tax": 3400,
+                "lossToCarryForward": 0
+            }
+        },
+        {
+            "id": "ask-negative-return",
+            "description": "ASK with negative return - 0 tax, loss carried forward",
+            "input": {
+                "taxYear": 2026,
+                "ask": {
+                    "openingValue": 100000,
+                    "closingValue": 85000,
+                    "netDeposits": 0,
+                    "netWithdrawals": 0
+                }
+            },
+            "expected": {
+                "taxableReturn": 0,
+                "tax": 0,
+                "lossToCarryForward": 15000,
+                "warning": "Negativt afkast - tab fremføres til modregning i fremtidige år."
+            }
+        },
+        {
+            "id": "ask-with-deposits",
+            "description": "ASK with deposits during year - excluded from return calculation",
+            "input": {
+                "taxYear": 2026,
+                "ask": {
+                    "openingValue": 100000,
+                    "closingValue": 150000,
+                    "netDeposits": 40000,
+                    "netWithdrawals": 0
+                }
+            },
+            "expected": {
+                "rawReturn": 10000,
+                "comment": "Return = 150.000 - 100.000 - 40.000 = 10.000 (not 50.000)"
+            }
+        },
+        {
+            "id": "mark-to-market-on-list",
+            "description": "ETF on SKAT's positive list - equity income treatment",
+            "input": {
+                "taxYear": 2026,
+                "markToMarket": {
+                    "holdings": [
+                        {
+                            "identifier": "IE00B4L5Y983",
+                            "name": "iShares Core MSCI World",
+                            "instrumentType": "ETF (aktiebaseret på Skats liste)",
+                            "openingValue": 100000,
+                            "closingValue": 115000,
+                            "onSkatsPositivliste": true
+                        }
+                    ]
+                }
+            },
+            "expected": {
+                "equityIncomeTaxableChange": 15000,
+                "incomeType": "EQUITY_INCOME",
+                "comment": "Should be taxed as equity income (27%/42%)"
+            }
+        },
+        {
+            "id": "mark-to-market-not-on-list",
+            "description": "ETF NOT on SKAT's positive list - capital income treatment",
+            "input": {
+                "taxYear": 2026,
+                "markToMarket": {
+                    "holdings": [
+                        {
+                            "identifier": "LU1234567890",
+                            "name": "Some Exotic ETF",
+                            "instrumentType": "ETF (ikke på Skats liste)",
+                            "openingValue": 50000,
+                            "closingValue": 60000,
+                            "onSkatsPositivliste": false
+                        }
+                    ]
+                }
+            },
+            "expected": {
+                "capitalIncomeTaxableChange": 10000,
+                "incomeType": "CAPITAL_INCOME",
+                "comment": "Should be taxed as capital income (up to 42% ceiling)"
+            }
+        }
+    ],
+    "notes": [
+        "All monetary values in DKK",
+        "Tolerance of 1 DKK allowed for rounding differences",
+        "Test cases derived from dynamisk_skattemodel_2026.xlsx",
+        "2026 reform includes NEW mellemskat (7.5% > 641.200) and toptopskat (5% > 2.592.700)"
+    ]
+}

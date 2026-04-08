@@ -5,7 +5,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>): J
   return (
     <section
       className={cn(
-        "rounded-lg border border-brand-border bg-brand-surface2 shadow-soft",
+        "rounded-lg border border-brand-border bg-brand-surface2 shadow-soft transition-[transform,box-shadow] duration-200 hover:shadow-card",
         className,
       )}
       {...props}

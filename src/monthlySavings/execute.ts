@@ -8,17 +8,13 @@
  * 4. Recording execution lines for audit
  */
 
-import { PrismaClient, Prisma, RunStatus } from '@prisma/client';
+import { RunStatus, Prisma } from '@prisma/client';
+import { prisma } from '../lib/db';
 import { getPriceQuote, PriceQuoteWithInstrument } from '../pricing';
 import { getExecutionDate, getTargetMonth } from './schedule';
 
-let prismaClient: PrismaClient | null = null;
-
-function getPrismaClient(): PrismaClient {
-    if (!prismaClient) {
-        prismaClient = new PrismaClient();
-    }
-    return prismaClient;
+function getPrismaClient() {
+    return prisma;
 }
 
 // Types
@@ -121,6 +117,21 @@ export async function executeShadowMonthlySavings(args: {
         };
     }
 
+    if (existingRun && force) {
+        // Re-run for same month: remove previous generated artifacts and recreate.
+        await prisma.$transaction(async (tx) => {
+            await tx.executionLine.deleteMany({
+                where: { runId: existingRun.id },
+            });
+            await tx.transaction.deleteMany({
+                where: { executionRunId: existingRun.id },
+            });
+            await tx.executionRun.delete({
+                where: { id: existingRun.id },
+            });
+        });
+    }
+
     // 5. Create execution run
     const auditSteps: AuditStep[] = [];
     const auditNotes: string[] = [];
@@ -132,7 +143,7 @@ export async function executeShadowMonthlySavings(args: {
             executedAt: new Date(),
             status: 'SUCCESS', // Will update if partial/failed
             targetMonth,
-            totalAmount: new Decimal(totalAmount),
+            totalAmount: new Prisma.Decimal(totalAmount),
         },
     });
 
@@ -188,7 +199,7 @@ export async function executeShadowMonthlySavings(args: {
                     runId: run.id,
                     instrumentId: instrument.id,
                     weightPct: line.weightPct,
-                    targetAmount: new Decimal(amount),
+                    targetAmount: new Prisma.Decimal(amount),
                     status: 'FAILED',
                     failureReason: quote.notes || 'Price quote not available',
                     quoteSource: quote.source,
@@ -218,10 +229,10 @@ export async function executeShadowMonthlySavings(args: {
                 instrumentId: instrument.id,
                 date: executionDate,
                 type: 'BUY',
-                quantity: new Decimal(quantity),
-                price: new Decimal(quote.price),
-                amount: new Decimal(amount),
-                fees: new Decimal(0),
+                quantity: new Prisma.Decimal(quantity),
+                price: new Prisma.Decimal(quote.price),
+                amount: new Prisma.Decimal(amount),
+                fees: new Prisma.Decimal(0),
                 currency: 'DKK',
                 source: 'monthly_plan_shadow',
                 executionRunId: run.id,
@@ -234,10 +245,10 @@ export async function executeShadowMonthlySavings(args: {
                 runId: run.id,
                 instrumentId: instrument.id,
                 weightPct: line.weightPct,
-                targetAmount: new Decimal(amount),
-                quotePrice: new Decimal(quote.price),
+                targetAmount: new Prisma.Decimal(amount),
+                quotePrice: new Prisma.Decimal(quote.price),
                 quoteSource: quote.source,
-                quantity: new Decimal(quantity),
+                quantity: new Prisma.Decimal(quantity),
                 status: 'EXECUTED',
                 transactionId: tx.id,
             },

@@ -1,9 +1,20 @@
 import type { Metadata } from "next";
+import { Fraunces, Manrope } from "next/font/google";
 import "@/app/globals.css";
 
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
 export const metadata: Metadata = {
-  title: "Wealth Management Tool",
-  description: "Calm and auditable wealth management workspace",
+  title: "Wealth Tool",
+  description: "Premium personal budget, portfolio and forecast workspace",
 };
 
 export default function RootLayout({
@@ -12,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): JSX.Element {
   return (
-    <html lang="en">
-      <body className="font-sans">{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${manrope.variable} ${fraunces.variable} font-sans`}>{children}</body>
     </html>
   );
 }

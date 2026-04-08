@@ -1,429 +1,385 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Home, Sigma } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExplainDrawer, type ExplainAudit } from "@/components/shared/explain-drawer";
-import { Icon } from "@/components/ui/icon";
 import { SectionLoading } from "@/components/shared/section-loading";
+import { ExplainDrawer, type ExplainAudit } from "@/components/shared/explain-drawer";
+import { DonutChart, type DonutChartDataPoint } from "@/components/charts/donut-chart";
+import { WealthAreaChart, type AreaChartDataPoint } from "@/components/charts/area-chart";
+import { KpiCard } from "@/components/dashboard/kpi-card";
 import { formatDKK } from "@/lib/format";
 import { fetchJson } from "@/lib/client";
+import { DataDebugToggle } from "@/components/debug/data-debug-toggle";
+import { Home, Wallet, CreditCard, TrendingUp, Calculator } from "lucide-react";
 
-interface HousingForm {
-  year: number;
-  purchase: {
-    price: number;
-    downPaymentCash: number;
-    closeDate: string;
-  };
-  financing: {
-    mortgage: {
-      enabled: boolean;
-      termYears: number;
-      amortizationProfile: "FULL" | "IO" | "CUSTOM";
-      bondRateNominalAnnual: number;
-      contributionRateAnnual: number;
-      paymentsPerYear: 12;
+interface HousingResult {
+  input: {
+    year: number;
+    purchase: {
+      price: number;
+      downPaymentCash: number;
+      closeDate: string;
     };
-    bankLoan: {
-      enabled: boolean;
-      rateNominalAnnual: number;
-      termYears: number;
-      paymentsPerYear: 12;
+    financing: {
+      mortgage: {
+        enabled: boolean;
+        termYears: number;
+        bondRateNominalAnnual: number;
+      };
+      bankLoan: {
+        enabled: boolean;
+        termYears: number;
+        rateNominalAnnual: number;
+      };
     };
   };
-  transactionCosts: {
-    includeDefaultCosts: boolean;
-    customCosts: Array<{ label: string; amount: number }>;
-  };
-  budgetIntegration: {
-    monthlyDisposableIncomeBeforeHousing: number;
-    monthlyHousingRunningCosts: number;
-  };
-  scenarioMeta: {
-    scenarioId: string;
-    notes?: string;
+  result: {
+    summary: {
+      purchasePrice: number;
+      downPayment: number;
+      totalTransactionCosts: number;
+      mortgagePrincipal: number;
+      bankLoanPrincipal: number;
+      totalDebt: number;
+      monthlyMortgagePayment: number;
+      monthlyBankLoanPayment: number;
+      totalMonthlyPayment: number;
+      firstMonthInterest: number;
+    };
+    cashFlow: {
+      upfrontCashNeeded: number;
+      firstMonthCost: number;
+    };
+    balanceSheetImpact: {
+      initialEquity: number;
+      propertyAsset: number;
+      totalLiabilities: number;
+    };
+    audits: ExplainAudit[];
   };
 }
 
-interface HousingOutput {
-  derived: {
-    mortgagePrincipal: number;
-    bankPrincipal: number;
-    deedFee: number;
-    mortgagePledgeFee: number;
-    bankPledgeFee: number;
-    totalUpfrontCosts: number;
+interface HousingDefaults {
+  defaults: {
+    year: number;
+    purchasePrice: number;
+    downPaymentPercent: number;
   };
-  monthly: {
-    mortgagePayment: number;
-    mortgageContribution: number;
-    bankPayment: number;
-    housingRunningCosts: number;
-    totalHousingCostPerMonth: number;
-    disposableAfterHousing: number;
-  };
-  balanceImpact: {
-    assetHomeValueInitial: number;
-    liabilitiesInitial: number;
-    equityInitial: number;
-  };
-  audits: ExplainAudit[];
-  warnings: string[];
-  assumptions: string[];
-}
-
-interface HousingResponse {
-  defaults: HousingForm;
-  output: HousingOutput;
-}
-
-interface MetricCardProps {
-  label: string;
-  value: number;
-  audit: ExplainAudit;
-}
-
-function MetricCard({ label, value, audit }: MetricCardProps): JSX.Element {
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <p className="text-xs uppercase tracking-wide text-brand-text2">{label}</p>
-        <p className="mt-2 text-2xl font-semibold tabular-nums text-brand-text1">{formatDKK(value)}</p>
-        <div className="mt-2">
-          <ExplainDrawer audit={audit} />
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 export default function HousingPage(): JSX.Element {
-  const [form, setForm] = useState<HousingForm | null>(null);
-  const [output, setOutput] = useState<HousingOutput | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [running, setRunning] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<HousingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    fetchJson<HousingResponse>("/api/housing")
-      .then((payload) => {
-        if (!mounted) {
-          return;
-        }
-        setForm(payload.defaults);
-        setOutput(payload.output);
-      })
-      .catch((err) => {
-        if (!mounted) {
-          return;
-        }
-        setError(err instanceof Error ? err.message : "Failed to load housing defaults");
-      })
-      .finally(() => {
-        if (mounted) {
-          setLoading(false);
-        }
+  // Form state
+  const [purchasePrice, setPurchasePrice] = useState(3000000);
+  const [downPayment, setDownPayment] = useState(300000);
+  const [mortgageRate, setMortgageRate] = useState(4);
+  const [mortgageYears, setMortgageYears] = useState(30);
+  const [bankLoanRate, setBankLoanRate] = useState(6.5);
+  const [bankLoanYears, setBankLoanYears] = useState(10);
+
+  const runSimulation = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetchJson<HousingResult>("/api/housing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: 2026,
+          purchase: {
+            price: purchasePrice,
+            downPaymentCash: downPayment,
+            closeDate: "2026-04-15",
+          },
+          financing: {
+            mortgage: {
+              enabled: true,
+              termYears: mortgageYears,
+              amortizationProfile: "FULL",
+              bondRateNominalAnnual: mortgageRate / 100,
+              contributionRateAnnual: 0.0075,
+              paymentsPerYear: 12,
+            },
+            bankLoan: {
+              enabled: true,
+              rateNominalAnnual: bankLoanRate / 100,
+              termYears: bankLoanYears,
+              paymentsPerYear: 12,
+            },
+          },
+          transactionCosts: {
+            includeDefaultCosts: true,
+            customCosts: [],
+          },
+          budgetIntegration: {
+            monthlyDisposableIncomeBeforeHousing: 35000,
+            monthlyHousingRunningCosts: 4000,
+          },
+          scenarioMeta: {
+            scenarioId: "housing_simulation",
+          },
+        }),
       });
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+      setResult(response);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunne ikke køre boligsimulering");
+    } finally {
+      setLoading(false);
+    }
+  }, [purchasePrice, downPayment, mortgageRate, mortgageYears, bankLoanRate, bankLoanYears]);
 
-  if (loading) {
-    return <SectionLoading />;
-  }
+  // Chart data
+  const costBreakdownData: DonutChartDataPoint[] = result ? [
+    { name: "Udbetaling", value: result.result.cashFlow.upfrontCashNeeded - (result.result.summary.totalTransactionCosts ?? 0), color: "#A4B0A3" },
+    { name: "Omkostninger", value: result.result.summary.totalTransactionCosts, color: "#7E8187" },
+  ] : [];
 
-  if (error || !form || !output) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-sm text-brand-danger">{error ?? "Unable to load housing"}</CardContent>
-      </Card>
-    );
-  }
+  const debtBreakdownData: DonutChartDataPoint[] = result ? [
+    { name: "Realkreditlån", value: result.result.summary.mortgagePrincipal, color: "#A4B0A3" },
+    { name: "Banklån", value: result.result.summary.bankLoanPrincipal, color: "#F9E8B0" },
+  ] : [];
+
+  const monthlyPaymentData: DonutChartDataPoint[] = result ? [
+    { name: "Realkreditlån", value: result.result.summary.monthlyMortgagePayment, color: "#A4B0A3" },
+    { name: "Banklån", value: result.result.summary.monthlyBankLoanPayment, color: "#F9E8B0" },
+  ] : [];
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Housing Simulation Input</CardTitle>
-            <CardDescription>Editable assumptions passed directly to simulation engine</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-3">
-              <label className="text-sm text-brand-text2">
-                Purchase price (DKK)
-                <input
-                  type="number"
-                  className="mt-1 w-full"
-                  value={form.purchase.price}
-                  onChange={(event) =>
-                    setForm((current) =>
-                      current
-                        ? {
-                            ...current,
-                            purchase: {
-                              ...current.purchase,
-                              price: Number(event.target.value),
-                            },
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-              <label className="text-sm text-brand-text2">
-                Down payment (DKK)
-                <input
-                  type="number"
-                  className="mt-1 w-full"
-                  value={form.purchase.downPaymentCash}
-                  onChange={(event) =>
-                    setForm((current) =>
-                      current
-                        ? {
-                            ...current,
-                            purchase: {
-                              ...current.purchase,
-                              downPaymentCash: Number(event.target.value),
-                            },
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-              <label className="text-sm text-brand-text2">
-                Close date
-                <input
-                  type="date"
-                  className="mt-1 w-full"
-                  value={form.purchase.closeDate}
-                  onChange={(event) =>
-                    setForm((current) =>
-                      current
-                        ? {
-                            ...current,
-                            purchase: {
-                              ...current.purchase,
-                              closeDate: event.target.value,
-                            },
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="text-sm text-brand-text2">
-                Mortgage rate (annual)
-                <input
-                  type="number"
-                  step={0.0001}
-                  className="mt-1 w-full"
-                  value={form.financing.mortgage.bondRateNominalAnnual}
-                  onChange={(event) =>
-                    setForm((current) =>
-                      current
-                        ? {
-                            ...current,
-                            financing: {
-                              ...current.financing,
-                              mortgage: {
-                                ...current.financing.mortgage,
-                                bondRateNominalAnnual: Number(event.target.value),
-                              },
-                            },
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-              <label className="text-sm text-brand-text2">
-                Bank rate (annual)
-                <input
-                  type="number"
-                  step={0.0001}
-                  className="mt-1 w-full"
-                  value={form.financing.bankLoan.rateNominalAnnual}
-                  onChange={(event) =>
-                    setForm((current) =>
-                      current
-                        ? {
-                            ...current,
-                            financing: {
-                              ...current.financing,
-                              bankLoan: {
-                                ...current.financing.bankLoan,
-                                rateNominalAnnual: Number(event.target.value),
-                              },
-                            },
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="text-sm text-brand-text2">
-                Disposable income before housing
-                <input
-                  type="number"
-                  className="mt-1 w-full"
-                  value={form.budgetIntegration.monthlyDisposableIncomeBeforeHousing}
-                  onChange={(event) =>
-                    setForm((current) =>
-                      current
-                        ? {
-                            ...current,
-                            budgetIntegration: {
-                              ...current.budgetIntegration,
-                              monthlyDisposableIncomeBeforeHousing: Number(event.target.value),
-                            },
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-              <label className="text-sm text-brand-text2">
-                Monthly running costs
-                <input
-                  type="number"
-                  className="mt-1 w-full"
-                  value={form.budgetIntegration.monthlyHousingRunningCosts}
-                  onChange={(event) =>
-                    setForm((current) =>
-                      current
-                        ? {
-                            ...current,
-                            budgetIntegration: {
-                              ...current.budgetIntegration,
-                              monthlyHousingRunningCosts: Number(event.target.value),
-                            },
-                          }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-            </div>
-
-            <Button
-              variant="primary"
-              disabled={running}
-              onClick={async () => {
-                try {
-                  setRunning(true);
-                  const response = await fetchJson<{ output: HousingOutput }>("/api/housing", {
-                    method: "POST",
-                    body: JSON.stringify(form),
-                  });
-                  setOutput(response.output);
-                  setError(null);
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "Simulation failed");
-                } finally {
-                  setRunning(false);
-                }
-              }}
-            >
-              Run Simulation
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Simulation Notes</CardTitle>
-            <CardDescription>Warnings and assumptions from the engine</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-brand-surface">
-              <Icon icon={Home} size={18} color="accent" />
-            </div>
-            {output.warnings.length > 0 ? (
-              <ul className="space-y-2 text-sm text-brand-warning">
-                {output.warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-brand-text2">No engine warnings for current input.</p>
-            )}
-            <p className="text-sm text-brand-text2">{output.assumptions[0] ?? "No assumptions provided."}</p>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        <MetricCard
-          label="Upfront Costs"
-          value={output.derived.totalUpfrontCosts}
-          audit={output.audits[0] ?? { title: "Upfront Costs" }}
-        />
-        <MetricCard
-          label="Monthly Housing Cost"
-          value={output.monthly.totalHousingCostPerMonth}
-          audit={output.audits[output.audits.length - 1] ?? { title: "Monthly Cost" }}
-        />
-        <MetricCard
-          label="Initial Equity Impact"
-          value={output.balanceImpact.equityInitial}
-          audit={
-            output.audits.find((audit) => audit.title.toLowerCase().includes("loan")) ?? {
-              title: "Balance Impact",
-              steps: [
-                {
-                  label: "Equity",
-                  formula: "home value - liabilities",
-                  value: output.balanceImpact.equityInitial,
-                  unit: "DKK",
-                },
-              ],
-            }
-          }
-        />
-      </section>
-
+      {/* Input Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Audit Objects</CardTitle>
-          <CardDescription>Inspect each calculation module</CardDescription>
+          <CardTitle className="text-base">Boligkøbsparametre</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {output.audits.map((audit, index) => (
-            <div
-              key={`${audit.title}-${index}`}
-              className="flex items-center justify-between rounded-md border border-brand-border bg-brand-surface p-3"
-            >
-              <div>
-                <p className="text-sm font-medium text-brand-text1">{audit.title}</p>
-                <p className="text-xs text-brand-text2">{audit.steps?.length ?? 0} steps</p>
-              </div>
-              <ExplainDrawer audit={audit} />
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Købspris
+              </label>
+              <input
+                type="number"
+                value={purchasePrice}
+                onChange={(e) => setPurchasePrice(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
             </div>
-          ))}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Udbetaling
+              </label>
+              <input
+                type="number"
+                value={downPayment}
+                onChange={(e) => setDownPayment(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Realkreditrente (%)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={mortgageRate}
+                onChange={(e) => setMortgageRate(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Realkreditløbetid (år)
+              </label>
+              <input
+                type="number"
+                value={mortgageYears}
+                onChange={(e) => setMortgageYears(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Banklånsrente (%)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={bankLoanRate}
+                onChange={(e) => setBankLoanRate(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Banklånsløbetid (år)
+              </label>
+              <input
+                type="number"
+                value={bankLoanYears}
+                onChange={(e) => setBankLoanYears(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+
+          <Button
+            variant="primary"
+            onClick={runSimulation}
+            disabled={loading}
+            className="mt-6"
+          >
+            {loading ? "Beregner..." : "Kør boligsimulering"}
+          </Button>
         </CardContent>
       </Card>
 
-      {error ? (
-        <Card className="border-brand-danger/30 bg-[#FDECEC]">
-          <CardContent className="p-3 text-sm text-brand-danger">
-            <Icon icon={Sigma} size={16} color="danger" className="mr-1 inline-block" />
+      {loading && <SectionLoading />}
+
+      {error && (
+        <Card className="border-brand-danger/30 bg-brand-danger/5">
+          <CardContent className="p-4 text-sm text-brand-danger">
             {error}
           </CardContent>
         </Card>
-      ) : null}
+      )}
+
+      {result && (
+        <>
+          {/* Summary KPIs */}
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              title="Kontantbehov ved køb"
+              value={formatDKK(result.result.cashFlow.upfrontCashNeeded)}
+              icon={Wallet}
+              size="large"
+            />
+            <KpiCard
+              title="Månedlig ydelse"
+              value={formatDKK(result.result.summary.totalMonthlyPayment)}
+              icon={CreditCard}
+            />
+            <KpiCard
+              title="Samlet gæld"
+              value={formatDKK(result.result.summary.totalDebt)}
+              icon={Home}
+            />
+            <KpiCard
+              title="Startkapital"
+              value={formatDKK(result.result.balanceSheetImpact.initialEquity)}
+              icon={TrendingUp}
+            />
+          </section>
+
+          {/* Charts Row */}
+          <section className="grid gap-4 lg:grid-cols-3">
+            {/* Upfront Cost Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Kontantbehov</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DonutChart
+                  data={costBreakdownData}
+                  height={220}
+                  innerRadius={45}
+                  outerRadius={70}
+                  showLegend={true}
+                  centerValue={formatDKK(result.result.cashFlow.upfrontCashNeeded)}
+                  centerLabel="I alt"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Debt Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Gældsfordeling</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DonutChart
+                  data={debtBreakdownData}
+                  height={220}
+                  innerRadius={45}
+                  outerRadius={70}
+                  showLegend={true}
+                  centerValue={formatDKK(result.result.summary.totalDebt)}
+                  centerLabel="Total gæld"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Monthly Payment Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Månedlig ydelse</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DonutChart
+                  data={monthlyPaymentData}
+                  height={220}
+                  innerRadius={45}
+                  outerRadius={70}
+                  showLegend={true}
+                  centerValue={formatDKK(result.result.summary.totalMonthlyPayment)}
+                  centerLabel="Pr. måned"
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Balance Sheet Impact */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Balance påvirkning</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 sm:grid-cols-3">
+                <div className="text-center">
+                  <p className="text-sm text-brand-text2">Boligværdi (aktiv)</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums text-brand-success">
+                    {formatDKK(result.result.balanceSheetImpact.propertyAsset)}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-brand-text2">Gæld (passiv)</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums text-brand-danger">
+                    {formatDKK(result.result.balanceSheetImpact.totalLiabilities)}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-brand-text2">Egenkapital</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums text-brand-text1">
+                    {formatDKK(result.result.balanceSheetImpact.initialEquity)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Audit Details */}
+          {result.result.audits.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Beregningsdetaljer</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {result.result.audits.map((audit, index) => (
+                  <ExplainDrawer key={index} audit={audit} />
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          <DataDebugToggle source="/api/housing (POST)" data={result} />
+        </>
+      )}
     </div>
   );
 }

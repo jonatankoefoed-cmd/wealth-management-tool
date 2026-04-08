@@ -1,0 +1,266 @@
+{
+  "novonordisk": {
+    "displayName": "Novo Nordisk",
+    "exists": true,
+    "path": "/logos/svg/novonordisk.webp",
+    "source": "brandfetch-local"
+  },
+  "danskebank": {
+    "displayName": "Danske Bank",
+    "exists": true,
+    "path": "/logos/svg/danskebank.webp",
+    "source": "brandfetch-local"
+  },
+  "carlsberg": {
+    "displayName": "Carlsberg",
+    "exists": true,
+    "path": "/logos/svg/carlsberg.webp",
+    "source": "brandfetch-local"
+  },
+  "a-p-m-ller-m-rsk": {
+    "displayName": "A.P. M\u00f8ller - M\u00e6rsk",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "rsted": {
+    "displayName": "\u00d8rsted",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "apple": {
+    "displayName": "Apple",
+    "exists": true,
+    "path": "/logos/svg/apple.svg",
+    "source": "simple-icons"
+  },
+  "microsoft": {
+    "displayName": "Microsoft",
+    "exists": true,
+    "path": "/logos/svg/microsoft.webp",
+    "source": "brandfetch-local"
+  },
+  "amazon-com": {
+    "displayName": "Amazon.com",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "tesla": {
+    "displayName": "Tesla",
+    "exists": true,
+    "path": "/logos/svg/tesla.svg",
+    "source": "simple-icons"
+  },
+  "nvidia": {
+    "displayName": "NVIDIA",
+    "exists": true,
+    "path": "/logos/svg/nvidia.svg",
+    "source": "simple-icons"
+  },
+  "meta": {
+    "displayName": "Meta Platforms",
+    "exists": true,
+    "path": "/logos/svg/meta.svg",
+    "source": "simple-icons"
+  },
+  "alphabetclass": {
+    "displayName": "AlphabetClass",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "bitcoin": {
+    "displayName": "Bitcoin",
+    "exists": true,
+    "path": "/logos/svg/bitcoin.svg",
+    "source": "simple-icons"
+  },
+  "ethereum": {
+    "displayName": "Ethereum",
+    "exists": true,
+    "path": "/logos/svg/ethereum.svg",
+    "source": "simple-icons"
+  },
+  "solana": {
+    "displayName": "Solana",
+    "exists": true,
+    "path": "/logos/svg/solana.svg",
+    "source": "simple-icons"
+  },
+  "xrp": {
+    "displayName": "XRP",
+    "exists": true,
+    "path": "/logos/svg/xrp.svg",
+    "source": "simple-icons"
+  },
+  "cardano": {
+    "displayName": "Cardano",
+    "exists": true,
+    "path": "/logos/svg/cardano.svg",
+    "source": "simple-icons"
+  },
+  "ishares": {
+    "displayName": "iShares",
+    "exists": true,
+    "path": "/logos/svg/ishares.webp",
+    "source": "brandfetch-local"
+  },
+  "sparindex": {
+    "displayName": "Sparindex",
+    "exists": true,
+    "path": "/logos/svg/sparindex.webp",
+    "source": "brandfetch-local"
+  },
+  "nordea": {
+    "displayName": "Nordea",
+    "exists": true,
+    "path": "/logos/svg/nordea.webp",
+    "source": "brandfetch-local"
+  },
+  "google": {
+    "displayName": "Alphabet",
+    "exists": true,
+    "path": "/logos/svg/google.svg",
+    "source": "simple-icons"
+  },
+  "alibabaadr": {
+    "displayName": "AlibabaADR",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "coinbase-global": {
+    "displayName": "Coinbase Global",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "cleanspark": {
+    "displayName": "CleanSpark",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "galaxy-digital": {
+    "displayName": "Galaxy Digital",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "gomspace": {
+    "displayName": "Gomspace",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "lucid": {
+    "displayName": "Lucid",
+    "exists": true,
+    "path": "/logos/svg/lucid.svg",
+    "source": "simple-icons"
+  },
+  "sas": {
+    "displayName": "SAS",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "sea-adr": {
+    "displayName": "Sea ADR",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "cbrain": {
+    "displayName": "cBrain",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "nordnet": {
+    "displayName": "Nordnet Bank",
+    "exists": true,
+    "path": "/logos/svg/nordnet.webp",
+    "source": "brandfetch-local"
+  },
+  "maj-invest": {
+    "displayName": "Maj Invest",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "maersk": {
+    "displayName": "A.P. M\u00f8ller - M\u00e6rsk",
+    "exists": true,
+    "path": "/logos/svg/maersk.webp",
+    "source": "brandfetch-local"
+  },
+  "orsted": {
+    "displayName": "\u00d8rsted",
+    "exists": true,
+    "path": "/logos/svg/orsted.webp",
+    "source": "brandfetch-local"
+  },
+  "amundi": {
+    "displayName": "Amundi",
+    "exists": true,
+    "path": "/securities/etfs/Amundi.png",
+    "source": "provider-fallback"
+  },
+  "polkadot": {
+    "displayName": "Polkadot",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "polygon": {
+    "displayName": "Polygon",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "algorand": {
+    "displayName": "Algorand",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "avalanche": {
+    "displayName": "Avalanche",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "tether": {
+    "displayName": "Tether",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "terra-luna": {
+    "displayName": "Terra Luna",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "terra-luna-classic": {
+    "displayName": "Terra Luna Classic",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "pepe": {
+    "displayName": "Pepe",
+    "exists": false,
+    "path": null,
+    "source": null
+  },
+  "binance-eth": {
+    "displayName": "Binance ETH",
+    "exists": false,
+    "path": null,
+    "source": null
+  }
+}

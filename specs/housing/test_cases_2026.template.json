@@ -1,0 +1,48 @@
+{
+    "year": 2026,
+    "cases": [
+        {
+            "name": "baseline house purchase",
+            "input": {
+                "year": 2026,
+                "purchase": {
+                    "price": 3000000,
+                    "downPaymentCash": 300000,
+                    "closeDate": "2026-04-15"
+                },
+                "financing": {
+                    "mortgage": {
+                        "enabled": true,
+                        "termYears": 30,
+                        "amortizationProfile": "FULL",
+                        "bondRateNominalAnnual": 0.04,
+                        "contributionRateAnnual": 0.0075,
+                        "paymentsPerYear": 12
+                    },
+                    "bankLoan": {
+                        "enabled": true,
+                        "rateNominalAnnual": 0.065,
+                        "termYears": 10,
+                        "paymentsPerYear": 12
+                    }
+                },
+                "transactionCosts": {
+                    "includeDefaultCosts": true,
+                    "customCosts": []
+                },
+                "budgetIntegration": {
+                    "monthlyDisposableIncomeBeforeHousing": 35000,
+                    "monthlyHousingRunningCosts": 4000
+                },
+                "scenarioMeta": {
+                    "scenarioId": "base"
+                }
+            },
+            "assert": {
+                "mortgagePrincipalDerived": true,
+                "bankPrincipalDerived": true,
+                "producesAudits": true
+            }
+        }
+    ]
+}

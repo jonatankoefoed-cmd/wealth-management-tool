@@ -4,16 +4,12 @@
  * Reads and writes price quotes from/to the database Price table.
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../lib/db';
 import { PriceQuoteResult } from './types';
 
-let prismaClient: PrismaClient | null = null;
-
-function getPrismaClient(): PrismaClient {
-    if (!prismaClient) {
-        prismaClient = new PrismaClient();
-    }
-    return prismaClient;
+function getPrismaClient() {
+    return prisma;
 }
 
 /**

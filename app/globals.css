@@ -18,30 +18,130 @@ body {
 body {
   @apply bg-brand-bg text-brand-text1 antialiased;
   font-feature-settings: "tnum" 1, "ss01" 1;
+  background-image:
+    radial-gradient(circle at top right, rgba(164, 176, 163, 0.12), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(249, 232, 176, 0.18), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,0.9), rgba(252,251,249,1));
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.03em;
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Premium Form Inputs ── */
 input,
 select,
 textarea {
   @apply rounded-md border-brand-border bg-brand-surface2 text-brand-text1 placeholder:text-brand-text3;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  @apply border-brand-accent ring-brand-accent;
+  @apply border-brand-accent ring-1 ring-brand-accent/30;
+  outline: none;
 }
 
+/* ── Custom Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #d8d4c5;
   border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c5c1b2;
+}
+
+/* ── Staggered Section Animations ── */
+.animate-fade-in-up > * {
+  opacity: 0;
+  animation: stagger-fade-in 320ms ease-out forwards;
+}
+
+.animate-fade-in-up > *:nth-child(1) { animation-delay: 0ms; }
+.animate-fade-in-up > *:nth-child(2) { animation-delay: 60ms; }
+.animate-fade-in-up > *:nth-child(3) { animation-delay: 120ms; }
+.animate-fade-in-up > *:nth-child(4) { animation-delay: 180ms; }
+.animate-fade-in-up > *:nth-child(5) { animation-delay: 240ms; }
+.animate-fade-in-up > *:nth-child(6) { animation-delay: 300ms; }
+.animate-fade-in-up > *:nth-child(7) { animation-delay: 360ms; }
+.animate-fade-in-up > *:nth-child(8) { animation-delay: 420ms; }
+
+@keyframes stagger-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Glass Morphism Utility ── */
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Premium Card Hover Lift ── */
+.card-hover {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px -15px rgba(51, 46, 45, 0.18);
+}
+
+/* ── Smooth Number Counter ── */
+.number-transition {
+  transition: all 300ms ease-out;
+}
+
+/* ── Gradient Text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #332E2D 0%, #A4B0A3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Skeleton Loading ── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    theme(colors.brand.surface) 25%,
+    theme(colors.brand.surface2) 50%,
+    theme(colors.brand.surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Focus Ring ── */
+.focus-ring {
+  @apply outline-none ring-2 ring-brand-accent/40 ring-offset-2 ring-offset-brand-bg;
 }

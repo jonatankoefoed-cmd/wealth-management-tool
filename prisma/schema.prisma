@@ -1,0 +1,370 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  CASH
+  BROKERAGE
+  DEBT
+}
+
+enum AssetType {
+  STOCK
+  ETF
+  FUND
+  OTHER
+}
+
+enum TaxBucket {
+  EQUITY_INCOME
+  CAPITAL_INCOME
+  UNKNOWN
+}
+
+enum TxType {
+  BUY
+  SELL
+  DIVIDEND
+  FEE
+  ADJUSTMENT
+}
+
+enum PlanStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum RunStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+  SKIPPED
+}
+
+enum DebtKind {
+  SU
+  OTHER
+}
+
+enum DebtPostingType {
+  DISBURSEMENT
+  INTEREST
+  REPAYMENT
+  ADJUSTMENT
+}
+
+enum ImportKind {
+  HOLDINGS_CSV
+  TRANSACTIONS_CSV
+  EXPENSES_CSV
+  OTHER
+}
+
+enum ImportStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts       Account[]
+  scenarios      Scenario[]
+  importJobs     ImportJob[]
+  txs            Transaction[]
+  snapshots      HoldingsSnapshot[]
+  recurringPlans RecurringInvestmentPlan[]
+  expenses       ExpenseLine[]
+  debtAccounts   DebtAccount[]
+}
+
+model Account {
+  id          String      @id @default(cuid())
+  userId      String
+  type        AccountType
+  name        String
+  currency    String      @default("DKK")
+  institution String?
+
+  user      User                      @relation(fields: [userId], references: [id])
+  txs       Transaction[]
+  plans     RecurringInvestmentPlan[]
+  snapshots HoldingsSnapshot[]
+}
+
+model Instrument {
+  id        String    @id @default(cuid())
+  isin      String?   @unique
+  ticker    String?
+  name      String
+  assetType AssetType
+  currency  String?
+  taxBucket TaxBucket @default(UNKNOWN)
+
+  prices         Price[]
+  txs            Transaction[]
+  planLines      RecurringPlanLine[]
+  snapLines      HoldingsSnapshotLine[]
+  executionLines ExecutionLine[]
+}
+
+model Price {
+  id           String   @id @default(cuid())
+  instrumentId String
+  date         DateTime
+  close        Decimal
+  currency     String
+  source       String?
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id])
+
+  @@index([instrumentId, date])
+}
+
+model ImportJob {
+  id          String       @id @default(cuid())
+  userId      String
+  kind        ImportKind
+  status      ImportStatus
+  sourceFile  String
+  importedAt  DateTime     @default(now())
+  mappingJson Json?
+  errorsJson  Json?
+
+  user         User               @relation(fields: [userId], references: [id])
+  txs          Transaction[]
+  snapshots    HoldingsSnapshot[]
+  expenses     ExpenseLine[]
+  debtPostings DebtPosting[]
+}
+
+model Transaction {
+  id             String   @id @default(cuid())
+  userId         String
+  accountId      String
+  instrumentId   String?
+  date           DateTime
+  type           TxType
+  quantity       Decimal?
+  price          Decimal?
+  amount         Decimal?
+  fees           Decimal? @default(0)
+  currency       String   @default("DKK")
+  source         String?
+  executionRunId String?
+  importJobId    String?
+
+  user         User          @relation(fields: [userId], references: [id])
+  account      Account       @relation(fields: [accountId], references: [id])
+  instrument   Instrument?   @relation(fields: [instrumentId], references: [id])
+  executionRun ExecutionRun? @relation(fields: [executionRunId], references: [id])
+  importJob    ImportJob?    @relation(fields: [importJobId], references: [id])
+  executionLine ExecutionLine?
+
+  @@index([userId, date])
+  @@index([accountId, date])
+  @@index([instrumentId, date])
+}
+
+model HoldingsSnapshot {
+  id          String   @id @default(cuid())
+  userId      String
+  accountId   String
+  asOfDate    DateTime
+  currency    String   @default("DKK")
+  importJobId String?
+
+  user      User                   @relation(fields: [userId], references: [id])
+  account   Account                @relation(fields: [accountId], references: [id])
+  importJob ImportJob?             @relation(fields: [importJobId], references: [id])
+  lines     HoldingsSnapshotLine[]
+
+  @@index([userId, asOfDate])
+}
+
+model HoldingsSnapshotLine {
+  id           String  @id @default(cuid())
+  snapshotId   String
+  instrumentId String
+  quantity     Decimal
+  avgCost      Decimal
+  costCurrency String  @default("DKK")
+
+  snapshot   HoldingsSnapshot @relation(fields: [snapshotId], references: [id])
+  instrument Instrument       @relation(fields: [instrumentId], references: [id])
+
+  @@index([snapshotId])
+}
+
+model RecurringInvestmentPlan {
+  id         String     @id @default(cuid())
+  userId     String
+  accountId  String
+  name       String?
+  amountDkk  Decimal
+  dayOfMonth Int
+  status     PlanStatus @default(ACTIVE)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user    User                @relation(fields: [userId], references: [id])
+  account Account             @relation(fields: [accountId], references: [id])
+  lines   RecurringPlanLine[]
+  runs    ExecutionRun[]
+
+  @@index([userId, status])
+}
+
+model RecurringPlanLine {
+  id           String  @id @default(cuid())
+  planId       String
+  instrumentId String
+  weightPct    Decimal
+  sortOrder    Int     @default(0)
+
+  plan       RecurringInvestmentPlan @relation(fields: [planId], references: [id])
+  instrument Instrument              @relation(fields: [instrumentId], references: [id])
+
+  @@unique([planId, instrumentId])
+}
+
+model ExecutionRun {
+  id            String    @id @default(cuid())
+  planId        String
+  scheduledDate DateTime
+  executedAt    DateTime?
+  status        RunStatus
+  targetMonth   String?   // "YYYY-MM" format
+  totalAmount   Decimal?
+  auditJson     Json?
+  note          String?
+
+  plan  RecurringInvestmentPlan @relation(fields: [planId], references: [id])
+  txs   Transaction[]
+  lines ExecutionLine[]
+
+  @@unique([planId, targetMonth])
+  @@index([planId, scheduledDate])
+}
+
+enum ExecutionLineStatus {
+  EXECUTED
+  FAILED
+  OVERRIDDEN
+}
+
+model ExecutionLine {
+  id                  String               @id @default(cuid())
+  runId               String
+  instrumentId        String
+  weightPct           Decimal
+  targetAmount        Decimal
+  quotePrice          Decimal?
+  quoteSource         String?
+  quantity            Decimal?
+  status              ExecutionLineStatus
+  failureReason       String?
+  manualPriceOverride Decimal?
+  manualNote          String?
+  overriddenAt        DateTime?
+  transactionId       String?              @unique
+
+  run         ExecutionRun @relation(fields: [runId], references: [id])
+  instrument  Instrument   @relation(fields: [instrumentId], references: [id])
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@index([runId])
+  @@index([instrumentId])
+}
+
+model ExpenseLine {
+  id          String    @id @default(cuid())
+  userId      String
+  category    String
+  name        String
+  amount      Decimal
+  currency    String    @default("DKK")
+  frequency   String
+  startDate   DateTime?
+  endDate     DateTime?
+  importJobId String?
+
+  user      User       @relation(fields: [userId], references: [id])
+  importJob ImportJob? @relation(fields: [importJobId], references: [id])
+
+  @@index([userId, category])
+}
+
+model DebtAccount {
+  id         String   @id @default(cuid())
+  userId     String
+  kind       DebtKind @default(SU)
+  name       String
+  currency   String   @default("DKK")
+  annualRate Decimal
+
+  user     User          @relation(fields: [userId], references: [id])
+  postings DebtPosting[]
+  plan     DebtPlan?
+
+  @@index([userId, kind])
+}
+
+model DebtPlan {
+  id             String     @id @default(cuid())
+  debtAccountId  String     @unique
+  startMonth     DateTime
+  endMonth       DateTime
+  amountPerMonth Decimal
+  dayOfMonth     Int
+  status         PlanStatus @default(ACTIVE)
+
+  debtAccount DebtAccount @relation(fields: [debtAccountId], references: [id])
+}
+
+model DebtPosting {
+  id            String          @id @default(cuid())
+  debtAccountId String
+  date          DateTime
+  type          DebtPostingType
+  amount        Decimal
+  currency      String          @default("DKK")
+  note          String?
+  importJobId   String?
+
+  debtAccount DebtAccount @relation(fields: [debtAccountId], references: [id])
+  importJob   ImportJob?  @relation(fields: [importJobId], references: [id])
+
+  @@index([debtAccountId, date])
+}
+
+model Scenario {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  isBase    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User               @relation(fields: [userId], references: [id])
+  overrides ScenarioOverride[]
+}
+
+model ScenarioOverride {
+  id         String @id @default(cuid())
+  scenarioId String
+  key        String
+  valueJson  Json
+
+  scenario Scenario @relation(fields: [scenarioId], references: [id])
+
+  @@unique([scenarioId, key])
+  @@index([scenarioId])
+}

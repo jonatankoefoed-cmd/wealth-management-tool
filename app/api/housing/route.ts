@@ -1,42 +1,10 @@
-import { loadHousingRules, simulateHomePurchase, type HousingPurchaseInput } from "@/src/housing";
+import { simulateHomePurchase, type HousingPurchaseInput } from "@/src/housing";
+import { loadHousingRules } from "@/src/housing/rules.server";
 import { fail, ok } from "@/app/api/_lib/response";
+import { createDefaultHousingInput, normalizeHousingInput } from "@/src/housing/defaults";
 
 function defaultInput(year = 2026): HousingPurchaseInput {
-  return {
-    year,
-    purchase: {
-      price: 3_000_000,
-      downPaymentCash: 300_000,
-      closeDate: `${year}-04-15`,
-    },
-    financing: {
-      mortgage: {
-        enabled: true,
-        termYears: 30,
-        amortizationProfile: "FULL",
-        bondRateNominalAnnual: 0.04,
-        contributionRateAnnual: 0.0075,
-        paymentsPerYear: 12,
-      },
-      bankLoan: {
-        enabled: true,
-        rateNominalAnnual: 0.065,
-        termYears: 10,
-        paymentsPerYear: 12,
-      },
-    },
-    transactionCosts: {
-      includeDefaultCosts: true,
-      customCosts: [],
-    },
-    budgetIntegration: {
-      monthlyDisposableIncomeBeforeHousing: 35_000,
-      monthlyHousingRunningCosts: 4_000,
-    },
-    scenarioMeta: {
-      scenarioId: "housing_default",
-    },
-  };
+  return normalizeHousingInput(createDefaultHousingInput(year));
 }
 
 function loadRulesOrExample(year: number) {
@@ -65,7 +33,7 @@ export async function GET(): Promise<Response> {
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const body = (await request.json()) as HousingPurchaseInput;
+    const body = normalizeHousingInput((await request.json()) as HousingPurchaseInput);
     const rules = loadRulesOrExample(body.year ?? 2026);
     const output = simulateHomePurchase(body, rules);
 

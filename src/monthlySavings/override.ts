@@ -8,15 +8,11 @@
  * and updates the underlying transaction.
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../lib/db';
 
-let prismaClient: PrismaClient | null = null;
-
-function getPrismaClient(): PrismaClient {
-    if (!prismaClient) {
-        prismaClient = new PrismaClient();
-    }
-    return prismaClient;
+function getPrismaClient() {
+    return prisma;
 }
 
 export interface OverrideResult {
@@ -58,7 +54,7 @@ export async function setManualExecutionPrice(args: {
     await prisma.executionLine.update({
         where: { id: executionLineId },
         data: {
-            manualPriceOverride: new Decimal(manualPrice),
+            manualPriceOverride: new Prisma.Decimal(manualPrice),
             manualNote: note,
             overriddenAt: new Date(),
             status: 'OVERRIDDEN',
@@ -70,7 +66,7 @@ export async function setManualExecutionPrice(args: {
         await prisma.transaction.update({
             where: { id: line.transactionId },
             data: {
-                price: new Decimal(manualPrice),
+                price: new Prisma.Decimal(manualPrice),
                 source: 'monthly_plan_shadow_override',
             },
         });

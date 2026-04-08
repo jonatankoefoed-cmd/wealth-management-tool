@@ -18,28 +18,28 @@ export function StatusChip({ status }: StatusChipProps): JSX.Element {
     );
   }
 
-  if (normalized === "PARTIAL") {
+  if (normalized === "WARNING" || normalized === "PARTIAL") {
     return (
-      <Badge variant="partial" className="gap-1.5">
+      <Badge variant="warning" className="gap-1.5 bg-amber-50 text-amber-700 border-amber-200">
         <Icon icon={CircleDashed} size={16} color="warning" />
-        PARTIAL
+        {normalized}
       </Badge>
     );
   }
 
-  if (normalized === "SKIPPED") {
+  if (normalized === "DANGER" || normalized === "FAILED") {
     return (
-      <Badge variant="neutral" className="gap-1.5">
-        <Icon icon={CircleDashed} size={16} color="secondary" />
-        SKIPPED
+      <Badge variant="danger" className="gap-1.5">
+        <Icon icon={AlertCircle} size={16} color="danger" />
+        {normalized === "DANGER" ? "DANGER" : "FAILED"}
       </Badge>
     );
   }
 
   return (
-    <Badge variant="danger" className="gap-1.5">
-      <Icon icon={AlertCircle} size={16} color="danger" />
-      FAILED
+    <Badge variant="neutral" className="gap-1.5">
+      <Icon icon={CircleDashed} size={16} color="secondary" />
+      {normalized}
     </Badge>
   );
 }

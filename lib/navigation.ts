@@ -1,10 +1,7 @@
 import {
-  ChartSpline,
   Home,
-  House,
-  Landmark,
   Layers,
-  PiggyBank,
+  LineChart,
   ReceiptText,
   Wallet,
   type LucideIcon,
@@ -22,43 +19,19 @@ export const NAV_ITEMS: NavigationItem[] = [
     href: "/",
     label: "Overview",
     icon: Home,
-    description: "Snapshot and latest execution health",
+    description: "Today, trajectory and key levers",
+  },
+  {
+    href: "/today/budget",
+    label: "Budget",
+    icon: ReceiptText,
+    description: "Monthly P&L and scenario editing",
   },
   {
     href: "/portfolio",
     label: "Portfolio",
-    icon: Wallet,
-    description: "Holdings, import status, and pricing completeness",
-  },
-  {
-    href: "/monthly-savings",
-    label: "Monthly Savings",
-    icon: PiggyBank,
-    description: "Plan setup and paper execution history",
-  },
-  {
-    href: "/debts",
-    label: "Debts",
-    icon: Landmark,
-    description: "SU postings and debt schedule",
-  },
-  {
-    href: "/housing",
-    label: "Housing",
-    icon: House,
-    description: "Purchase simulation and cost impact",
-  },
-  {
-    href: "/projection",
-    label: "Projection",
-    icon: ChartSpline,
-    description: "Monthly timeline with housing toggle",
-  },
-  {
-    href: "/tax",
-    label: "Tax",
-    icon: ReceiptText,
-    description: "Tax run and audited breakdown",
+    icon: LineChart,
+    description: "Composition and forward outlook",
   },
 ];
 
@@ -66,6 +39,23 @@ export function getNavigationMeta(pathname: string): NavigationItem {
   const item = NAV_ITEMS.find((candidate) => candidate.href === pathname);
   if (item) {
     return item;
+  }
+  if (pathname.startsWith("/input")) {
+    return {
+      href: pathname,
+      label: "Advanced Assumptions",
+      icon: Wallet,
+      description: "Housing, debt, tax and long-range settings",
+    };
+  }
+  if (pathname.startsWith("/today/net-worth")) {
+    return NAV_ITEMS[1];
+  }
+  if (pathname.startsWith("/today/budget")) {
+    return NAV_ITEMS[1];
+  }
+  if (pathname.startsWith("/portfolio") || pathname.startsWith("/future")) {
+    return NAV_ITEMS[2];
   }
   return {
     href: pathname,

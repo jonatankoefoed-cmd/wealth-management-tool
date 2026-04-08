@@ -1,0 +1,146 @@
+{
+    "meta": {
+        "description": "Ticker mapping from ISIN/internal ID to API tickers",
+        "lastUpdated": "2026-02-08"
+    },
+    "stocks": {
+        "DK0060534915": {
+            "yahoo": "NOVO-B.CO",
+            "name": "Novo Nordisk B",
+            "type": "stock",
+            "exchange": "CPH"
+        },
+        "DK0010274414": {
+            "yahoo": "DANSKE.CO",
+            "name": "Danske Bank",
+            "type": "stock",
+            "exchange": "CPH"
+        },
+        "DK0060636678": {
+            "yahoo": "CARLB.CO",
+            "name": "Carlsberg B",
+            "type": "stock",
+            "exchange": "CPH"
+        },
+        "DK0010244508": {
+            "yahoo": "MAERSK-B.CO",
+            "name": "A.P. Møller - Mærsk B",
+            "type": "stock",
+            "exchange": "CPH"
+        },
+        "DK0061539921": {
+            "yahoo": "ORSTED.CO",
+            "name": "Ørsted",
+            "type": "stock",
+            "exchange": "CPH"
+        },
+        "US0378331005": {
+            "yahoo": "AAPL",
+            "name": "Apple Inc",
+            "type": "stock",
+            "exchange": "NASDAQ"
+        },
+        "US5949181045": {
+            "yahoo": "MSFT",
+            "name": "Microsoft Corporation",
+            "type": "stock",
+            "exchange": "NASDAQ"
+        },
+        "US0231351067": {
+            "yahoo": "AMZN",
+            "name": "Amazon.com Inc",
+            "type": "stock",
+            "exchange": "NASDAQ"
+        },
+        "US88160R1014": {
+            "yahoo": "TSLA",
+            "name": "Tesla Inc",
+            "type": "stock",
+            "exchange": "NASDAQ"
+        },
+        "US67066G1040": {
+            "yahoo": "NVDA",
+            "name": "NVIDIA Corporation",
+            "type": "stock",
+            "exchange": "NASDAQ"
+        },
+        "US30303M1027": {
+            "yahoo": "META",
+            "name": "Meta Platforms Inc",
+            "type": "stock",
+            "exchange": "NASDAQ"
+        },
+        "US02079K3059": {
+            "yahoo": "GOOGL",
+            "name": "Alphabet Inc Class A",
+            "type": "stock",
+            "exchange": "NASDAQ"
+        }
+    },
+    "etfs": {
+        "IE00B4L5Y983": {
+            "yahoo": "EUNL.DE",
+            "name": "iShares Core MSCI World UCITS ETF",
+            "type": "etf",
+            "onSkatsPositivliste": true
+        },
+        "IE00B5BMR087": {
+            "yahoo": "CSPX.L",
+            "name": "iShares Core S&P 500 UCITS ETF",
+            "type": "etf",
+            "onSkatsPositivliste": true
+        },
+        "IE00BKM4GZ66": {
+            "yahoo": "EIMI.L",
+            "name": "iShares Core MSCI EM IMI UCITS ETF",
+            "type": "etf",
+            "onSkatsPositivliste": true
+        },
+        "DK0060946838": {
+            "yahoo": "SPVIGAKL.CO",
+            "name": "Sparindex INDEX Globale Aktier KL",
+            "type": "etf",
+            "onSkatsPositivliste": true
+        },
+        "DK0060817849": {
+            "yahoo": "SPVIUSAL.CO",
+            "name": "Sparindex INDEX USA Growth KL",
+            "type": "etf",
+            "onSkatsPositivliste": true
+        }
+    },
+    "crypto": {
+        "BTC": {
+            "binance": "BTCUSDT",
+            "name": "Bitcoin",
+            "type": "crypto"
+        },
+        "ETH": {
+            "binance": "ETHUSDT",
+            "name": "Ethereum",
+            "type": "crypto"
+        },
+        "SOL": {
+            "binance": "SOLUSDT",
+            "name": "Solana",
+            "type": "crypto"
+        },
+        "XRP": {
+            "binance": "XRPUSDT",
+            "name": "XRP",
+            "type": "crypto"
+        },
+        "ADA": {
+            "binance": "ADAUSDT",
+            "name": "Cardano",
+            "type": "crypto"
+        }
+    },
+    "funds": {
+        "DK0060950517": {
+            "yahoo": null,
+            "name": "Nordea Invest Globale Aktier",
+            "type": "fund"
+        }
+    }
+}

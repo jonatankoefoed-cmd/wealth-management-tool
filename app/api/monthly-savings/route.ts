@@ -64,7 +64,7 @@ export async function GET(): Promise<Response> {
     return ok({
       userId,
       plan,
-      runs,
+      executions: runs,
       lineQuotes,
       currentTargetMonth,
       executionDate: executionDate.toISOString(),

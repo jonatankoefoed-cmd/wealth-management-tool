@@ -1,0 +1,162 @@
+[
+  {
+    "slug": "novonordisk",
+    "name": "Novo Nordisk",
+    "originalName": "Novo Nordisk B"
+  },
+  {
+    "slug": "danskebank",
+    "name": "Danske Bank",
+    "originalName": "Danske Bank"
+  },
+  {
+    "slug": "carlsberg",
+    "name": "Carlsberg",
+    "originalName": "Carlsberg B"
+  },
+  {
+    "slug": "maersk",
+    "name": "A.P. Møller - Mærsk",
+    "originalName": "A.P. Møller - Mærsk B"
+  },
+  {
+    "slug": "orsted",
+    "name": "Ørsted",
+    "originalName": "Ørsted"
+  },
+  {
+    "slug": "apple",
+    "name": "Apple",
+    "originalName": "Apple Inc"
+  },
+  {
+    "slug": "microsoft",
+    "name": "Microsoft",
+    "originalName": "Microsoft Corporation"
+  },
+  {
+    "slug": "amazon-com",
+    "name": "Amazon.com",
+    "originalName": "Amazon.com Inc"
+  },
+  {
+    "slug": "tesla",
+    "name": "Tesla",
+    "originalName": "Tesla Inc"
+  },
+  {
+    "slug": "nvidia",
+    "name": "NVIDIA",
+    "originalName": "NVIDIA Corporation"
+  },
+  {
+    "slug": "meta",
+    "name": "Meta Platforms",
+    "originalName": "Meta Platforms Inc"
+  },
+  {
+    "slug": "alphabetclass",
+    "name": "AlphabetClass",
+    "originalName": "Alphabet Inc Class A"
+  },
+  {
+    "slug": "bitcoin",
+    "name": "Bitcoin",
+    "originalName": "Bitcoin"
+  },
+  {
+    "slug": "ethereum",
+    "name": "Ethereum",
+    "originalName": "Ethereum"
+  },
+  {
+    "slug": "solana",
+    "name": "Solana",
+    "originalName": "Solana"
+  },
+  {
+    "slug": "xrp",
+    "name": "XRP",
+    "originalName": "XRP"
+  },
+  {
+    "slug": "cardano",
+    "name": "Cardano",
+    "originalName": "Cardano"
+  },
+  {
+    "slug": "ishares",
+    "name": "iShares",
+    "originalName": "iShares Core MSCI World UCITS ETF"
+  },
+  {
+    "slug": "sparindex",
+    "name": "Sparindex",
+    "originalName": "Sparindex INDEX Globale Aktier KL"
+  },
+  {
+    "slug": "nordea",
+    "name": "Nordea",
+    "originalName": "Nordea Invest Globale Aktier"
+  },
+  {
+    "slug": "google",
+    "name": "Alphabet",
+    "originalName": "Alphabet A"
+  },
+  {
+    "slug": "alibabaadr",
+    "name": "AlibabaADR",
+    "originalName": "Alibaba Group ADR"
+  },
+  {
+    "slug": "coinbase-global",
+    "name": "Coinbase Global",
+    "originalName": "Coinbase Global"
+  },
+  {
+    "slug": "cleanspark",
+    "name": "CleanSpark",
+    "originalName": "CleanSpark"
+  },
+  {
+    "slug": "galaxy-digital",
+    "name": "Galaxy Digital",
+    "originalName": "Galaxy Digital Holdings"
+  },
+  {
+    "slug": "gomspace",
+    "name": "Gomspace",
+    "originalName": "Gomspace Group"
+  },
+  {
+    "slug": "lucid",
+    "name": "Lucid",
+    "originalName": "Lucid Group"
+  },
+  {
+    "slug": "sas",
+    "name": "SAS",
+    "originalName": "SAS"
+  },
+  {
+    "slug": "sea-adr",
+    "name": "Sea ADR",
+    "originalName": "Sea ADR"
+  },
+  {
+    "slug": "cbrain",
+    "name": "cBrain",
+    "originalName": "cBrain"
+  },
+  {
+    "slug": "nordnet",
+    "name": "Nordnet Bank",
+    "originalName": "Nordnet"
+  },
+  {
+    "slug": "maj-invest",
+    "name": "Maj Invest",
+    "originalName": "Maj Invest"
+  }
+]

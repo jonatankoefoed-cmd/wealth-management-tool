@@ -1,4 +1,4 @@
-import type { HTMLAttributes, TableHTMLAttributes } from "react";
+import React, { type HTMLAttributes, type TableHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
 export function TableShell({ className, ...props }: HTMLAttributes<HTMLDivElement>): JSX.Element {
@@ -51,4 +51,16 @@ export function TR({ className, ...props }: HTMLAttributes<HTMLTableRowElement>)
 
 export function TD({ className, ...props }: HTMLAttributes<HTMLTableCellElement>): JSX.Element {
   return <td className={cn("px-4 py-3 text-sm text-brand-text1", className)} {...props} />;
+}
+
+export {
+  Table as Root,
+  THead as TableHeader,
+  TR as TableRow,
+  TH as TableHead,
+  TD as TableCell,
+};
+
+export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>): JSX.Element {
+  return <tbody className={cn("[&_tr:last-child]:border-0", className)} {...props} />;
 }

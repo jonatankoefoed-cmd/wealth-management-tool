@@ -1,498 +1,299 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Calculator } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExplainDrawer, type ExplainAudit } from "@/components/shared/explain-drawer";
-import { Icon } from "@/components/ui/icon";
 import { SectionLoading } from "@/components/shared/section-loading";
+import { ExplainDrawer, type ExplainAudit } from "@/components/shared/explain-drawer";
+import { DonutChart, type DonutChartDataPoint } from "@/components/charts/donut-chart";
+import { WealthBarChart, type BarChartDataPoint } from "@/components/charts/bar-chart";
+import { KpiCard } from "@/components/dashboard/kpi-card";
 import { formatDKK } from "@/lib/format";
 import { fetchJson } from "@/lib/client";
+import { DataDebugToggle } from "@/components/debug/data-debug-toggle";
+import { Receipt, Percent, Wallet, Calculator } from "lucide-react";
 
-interface TaxDefaultsResponse {
-  defaults: {
-    taxYear: number;
-    municipality: {
-      rate: number;
-      churchRate: number;
-    };
-    personalIncome: {
-      grossIncome: number;
-      pensionContributions: number;
-      customDeductions: number;
-    };
-    investments: {
-      equityIncome: {
-        realizedGains: number;
-        realizedLosses: number;
-        dividends: number;
-        lossCarryForwardFromPriorYears: number;
-      };
-    };
-  };
-  testCaseIds: string[];
-  firstTestCase: {
-    id: string;
-    input: Record<string, unknown>;
-  };
+interface TaxBreakdown {
+  personalIncome: number;
+  amTax: number;
+  bottomTax: number;
+  topTax: number;
+  municipalTax: number;
+  churchTax: number;
+  equityTax: number;
+  askTax: number;
+  markToMarketTax: number;
+  totalTax: number;
 }
 
-interface TaxResultResponse {
-  input: unknown;
+interface TaxResult {
+  input: {
+    year: number;
+    grossSalary: number;
+    equityGains: number;
+    dividends: number;
+    askGains: number;
+    markToMarketGains: number;
+  };
   result: {
-    totals: {
-      totalTax: number;
-      personalTaxTotal: number;
-      equityTaxTotal: number;
-      askTaxTotal: number;
-      markToMarketTaxTotal: number;
-      capitalTaxTotal: number;
-    };
-    breakdown: {
-      personal?: {
-        audit: ExplainAudit;
-      };
-      equity?: {
-        audit: ExplainAudit;
-      };
-      ask?: {
-        audit: ExplainAudit;
-      };
-      markToMarket?: {
-        audit: ExplainAudit;
-      };
-      capital?: {
-        note: string;
-      };
-    };
-    summaryAudit: ExplainAudit;
-    warnings: string[];
-    assumptions: string[];
+    breakdown: TaxBreakdown;
+    effectiveRate: number;
+    netIncome: number;
+    audits: ExplainAudit[];
   };
 }
-
-interface TaxForm {
-  taxYear: number;
-  municipalityRate: number;
-  churchRate: number;
-  isMarried: boolean;
-  salaryGross: number;
-  pensionEmployee: number;
-  deductionOther: number;
-  realizedGains: number;
-  dividends: number;
-  lossesCarryForwardUsed: number;
-  askOpening: number;
-  askClosing: number;
-  askNetDeposits: number;
-  askNetWithdrawals: number;
-}
-
-const initialForm: TaxForm = {
-  taxYear: 2026,
-  municipalityRate: 0.25,
-  churchRate: 0.007,
-  isMarried: false,
-  salaryGross: 500000,
-  pensionEmployee: 0,
-  deductionOther: 0,
-  realizedGains: 40000,
-  dividends: 20000,
-  lossesCarryForwardUsed: 0,
-  askOpening: 100000,
-  askClosing: 120000,
-  askNetDeposits: 0,
-  askNetWithdrawals: 0,
-};
 
 export default function TaxPage(): JSX.Element {
-  const [form, setForm] = useState<TaxForm>(initialForm);
-  const [defaults, setDefaults] = useState<TaxDefaultsResponse | null>(null);
-  const [result, setResult] = useState<TaxResultResponse["result"] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [running, setRunning] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<TaxResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    fetchJson<TaxDefaultsResponse>("/api/tax")
-      .then((payload) => {
-        if (!mounted) {
-          return;
-        }
-        setDefaults(payload);
-        setForm((current) => ({
-          ...current,
-          taxYear: payload.defaults.taxYear,
-          municipalityRate: payload.defaults.municipality.rate,
-          churchRate: payload.defaults.municipality.churchRate,
-          salaryGross: payload.defaults.personalIncome.grossIncome,
-          pensionEmployee: payload.defaults.personalIncome.pensionContributions,
-          deductionOther: payload.defaults.personalIncome.customDeductions,
-          realizedGains: payload.defaults.investments.equityIncome.realizedGains,
-          dividends: payload.defaults.investments.equityIncome.dividends,
-          lossesCarryForwardUsed:
-            payload.defaults.investments.equityIncome.lossCarryForwardFromPriorYears,
-        }));
-      })
-      .catch((err) => {
-        if (!mounted) {
-          return;
-        }
-        setError(err instanceof Error ? err.message : "Failed to load tax defaults");
-      })
-      .finally(() => {
-        if (mounted) {
-          setLoading(false);
-        }
+  // Form state
+  const [grossSalary, setGrossSalary] = useState(600000);
+  const [equityGains, setEquityGains] = useState(50000);
+  const [dividends, setDividends] = useState(10000);
+  const [askGains, setAskGains] = useState(15000);
+  const [markToMarketGains, setMarkToMarketGains] = useState(20000);
+
+  const runCalculation = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetchJson<TaxResult>("/api/tax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: 2024,
+          grossSalary,
+          equityGains,
+          dividends,
+          askGains,
+          markToMarketGains,
+        }),
       });
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+      setResult(response);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunne ikke beregne skat");
+    } finally {
+      setLoading(false);
+    }
+  }, [grossSalary, equityGains, dividends, askGains, markToMarketGains]);
 
-  if (loading) {
-    return <SectionLoading />;
-  }
+  // Chart data
+  const taxCompositionData: DonutChartDataPoint[] = result ? [
+    { name: "AM-bidrag", value: result.result.breakdown.amTax, color: "#A4B0A3" },
+    { name: "Bundskat", value: result.result.breakdown.bottomTax, color: "#7E8187" },
+    { name: "Topskat", value: result.result.breakdown.topTax, color: "#F9E8B0" },
+    { name: "Kommuneskat", value: result.result.breakdown.municipalTax, color: "#A7ACB4" },
+    { name: "Kirkeskat", value: result.result.breakdown.churchTax, color: "#E8E5D4" },
+  ].filter(d => d.value > 0) : [];
 
-  if (error && !defaults) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-sm text-brand-danger">{error}</CardContent>
-      </Card>
-    );
-  }
+  const investmentTaxData: DonutChartDataPoint[] = result ? [
+    { name: "Aktieskat", value: result.result.breakdown.equityTax, color: "#A4B0A3" },
+    { name: "ASK-skat", value: result.result.breakdown.askTax, color: "#7E8187" },
+    { name: "Lagerbeskatning", value: result.result.breakdown.markToMarketTax, color: "#F9E8B0" },
+  ].filter(d => d.value > 0) : [];
+
+  const taxBarData: BarChartDataPoint[] = result ? [
+    { label: "AM", value: result.result.breakdown.amTax },
+    { label: "Bund", value: result.result.breakdown.bottomTax },
+    { label: "Top", value: result.result.breakdown.topTax },
+    { label: "Komm.", value: result.result.breakdown.municipalTax },
+    { label: "Aktie", value: result.result.breakdown.equityTax },
+    { label: "ASK", value: result.result.breakdown.askTax },
+    { label: "Lager", value: result.result.breakdown.markToMarketTax },
+  ].filter(d => d.value > 0) : [];
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      {/* Input Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Tax Run Form</CardTitle>
-          <CardDescription>Input values sent directly to tax engine (DKK yearly amounts)</CardDescription>
+          <CardTitle className="text-base">Skatteberegningsparametre</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-4">
-            <label className="text-sm text-brand-text2">
-              Tax year
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Bruttoløn (årlig)
+              </label>
               <input
                 type="number"
-                className="mt-1 w-full"
-                value={form.taxYear}
-                onChange={(event) => setForm((current) => ({ ...current, taxYear: Number(event.target.value) }))}
+                value={grossSalary}
+                onChange={(e) => setGrossSalary(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
               />
-            </label>
-            <label className="text-sm text-brand-text2">
-              Municipality rate
-              <input
-                type="number"
-                step={0.0001}
-                className="mt-1 w-full"
-                value={form.municipalityRate}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, municipalityRate: Number(event.target.value) }))
-                }
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              Church rate
-              <input
-                type="number"
-                step={0.0001}
-                className="mt-1 w-full"
-                value={form.churchRate}
-                onChange={(event) => setForm((current) => ({ ...current, churchRate: Number(event.target.value) }))}
-              />
-            </label>
-            <label className="flex items-center gap-2 rounded-md border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-text1">
-              <input
-                type="checkbox"
-                checked={form.isMarried}
-                onChange={(event) => setForm((current) => ({ ...current, isMarried: event.target.checked }))}
-              />
-              Married thresholds
-            </label>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-3">
-            <label className="text-sm text-brand-text2">
-              Salary gross
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.salaryGross}
-                onChange={(event) => setForm((current) => ({ ...current, salaryGross: Number(event.target.value) }))}
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              Pension employee
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.pensionEmployee}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, pensionEmployee: Number(event.target.value) }))
-                }
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              Other deductions
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.deductionOther}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, deductionOther: Number(event.target.value) }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-3">
-            <label className="text-sm text-brand-text2">
-              Realized gains
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.realizedGains}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, realizedGains: Number(event.target.value) }))
-                }
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              Dividends
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.dividends}
-                onChange={(event) => setForm((current) => ({ ...current, dividends: Number(event.target.value) }))}
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              Loss carry forward used
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.lossesCarryForwardUsed}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, lossesCarryForwardUsed: Number(event.target.value) }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-4">
-            <label className="text-sm text-brand-text2">
-              ASK opening value
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.askOpening}
-                onChange={(event) => setForm((current) => ({ ...current, askOpening: Number(event.target.value) }))}
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              ASK closing value
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.askClosing}
-                onChange={(event) => setForm((current) => ({ ...current, askClosing: Number(event.target.value) }))}
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              ASK net deposits
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.askNetDeposits}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, askNetDeposits: Number(event.target.value) }))
-                }
-              />
-            </label>
-            <label className="text-sm text-brand-text2">
-              ASK net withdrawals
-              <input
-                type="number"
-                className="mt-1 w-full"
-                value={form.askNetWithdrawals}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, askNetWithdrawals: Number(event.target.value) }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-xs text-brand-text2">
-              Available verification cases: {defaults?.testCaseIds.join(", ") ?? "No cases found"}
             </div>
-            <Button
-              variant="primary"
-              disabled={running}
-              onClick={async () => {
-                try {
-                  setRunning(true);
-                  const response = await fetchJson<TaxResultResponse>("/api/tax", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      taxYear: form.taxYear,
-                      municipality: {
-                        rate: form.municipalityRate,
-                        churchRate: form.churchRate,
-                      },
-                      personalIncome: {
-                        salaryGross: form.salaryGross,
-                        pensionEmployee: form.pensionEmployee,
-                        deductions: {
-                          other: form.deductionOther,
-                        },
-                      },
-                      investments: {
-                        equityIncome: {
-                          realizedGains: form.realizedGains,
-                          dividends: form.dividends,
-                          lossesCarryForwardUsed: form.lossesCarryForwardUsed,
-                        },
-                        ask: {
-                          openingValue: form.askOpening,
-                          closingValue: form.askClosing,
-                          netDeposits: form.askNetDeposits,
-                          netWithdrawals: form.askNetWithdrawals,
-                        },
-                      },
-                      isMarried: form.isMarried,
-                    }),
-                  });
-
-                  setResult(response.result);
-                  setError(null);
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "Tax run failed");
-                } finally {
-                  setRunning(false);
-                }
-              }}
-            >
-              Run Tax Calculation
-            </Button>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Aktiegevinster
+              </label>
+              <input
+                type="number"
+                value={equityGains}
+                onChange={(e) => setEquityGains(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Udbytter
+              </label>
+              <input
+                type="number"
+                value={dividends}
+                onChange={(e) => setDividends(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                ASK-gevinster
+              </label>
+              <input
+                type="number"
+                value={askGains}
+                onChange={(e) => setAskGains(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brand-text2">
+                Lagerbeskatning
+              </label>
+              <input
+                type="number"
+                value={markToMarketGains}
+                onChange={(e) => setMarkToMarketGains(Number(e.target.value))}
+                className="w-full rounded-md border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+              />
+            </div>
           </div>
+
+          <Button
+            variant="primary"
+            onClick={runCalculation}
+            disabled={loading}
+            className="mt-6"
+          >
+            {loading ? "Beregner..." : "Beregn skat"}
+          </Button>
         </CardContent>
       </Card>
 
-      {result ? (
-        <>
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <Card>
-              <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-brand-text2">Total Tax</p>
-                <p className="mt-2 text-2xl font-semibold tabular-nums text-brand-text1">
-                  {formatDKK(result.totals.totalTax)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-brand-text2">Personal Tax</p>
-                <p className="mt-2 text-2xl font-semibold tabular-nums text-brand-text1">
-                  {formatDKK(result.totals.personalTaxTotal)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-brand-text2">Equity Tax</p>
-                <p className="mt-2 text-2xl font-semibold tabular-nums text-brand-text1">
-                  {formatDKK(result.totals.equityTaxTotal)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-5">
-                <p className="text-xs uppercase tracking-wide text-brand-text2">ASK Tax</p>
-                <p className="mt-2 text-2xl font-semibold tabular-nums text-brand-text1">
-                  {formatDKK(result.totals.askTaxTotal)}
-                </p>
-              </CardContent>
-            </Card>
-          </section>
+      {loading && <SectionLoading />}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Audit Details</CardTitle>
-              <CardDescription>Every major number links to an explain drawer</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between rounded-md border border-brand-border bg-brand-surface p-3">
-                <div>
-                  <p className="text-sm font-medium text-brand-text1">Summary audit</p>
-                  <p className="text-xs text-brand-text2">Total annual tax aggregation</p>
-                </div>
-                <ExplainDrawer audit={result.summaryAudit} />
-              </div>
-
-              {result.breakdown.personal ? (
-                <div className="flex items-center justify-between rounded-md border border-brand-border bg-brand-surface p-3">
-                  <p className="text-sm font-medium text-brand-text1">Personal tax audit</p>
-                  <ExplainDrawer audit={result.breakdown.personal.audit} />
-                </div>
-              ) : null}
-
-              {result.breakdown.equity ? (
-                <div className="flex items-center justify-between rounded-md border border-brand-border bg-brand-surface p-3">
-                  <p className="text-sm font-medium text-brand-text1">Equity tax audit</p>
-                  <ExplainDrawer audit={result.breakdown.equity.audit} />
-                </div>
-              ) : null}
-
-              {result.breakdown.ask ? (
-                <div className="flex items-center justify-between rounded-md border border-brand-border bg-brand-surface p-3">
-                  <p className="text-sm font-medium text-brand-text1">ASK tax audit</p>
-                  <ExplainDrawer audit={result.breakdown.ask.audit} />
-                </div>
-              ) : null}
-
-              {result.breakdown.markToMarket ? (
-                <div className="flex items-center justify-between rounded-md border border-brand-border bg-brand-surface p-3">
-                  <p className="text-sm font-medium text-brand-text1">Mark-to-market audit</p>
-                  <ExplainDrawer audit={result.breakdown.markToMarket.audit} />
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          {result.warnings.length ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Warnings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1 text-sm text-brand-warning">
-                {result.warnings.map((warning) => (
-                  <p key={warning}>{warning}</p>
-                ))}
-              </CardContent>
-            </Card>
-          ) : null}
-        </>
-      ) : (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-brand-surface">
-              <Icon icon={Calculator} size={18} color="secondary" />
-            </div>
-            <p className="text-sm text-brand-text2">Run a tax calculation to view audited breakdowns.</p>
+      {error && (
+        <Card className="border-brand-danger/30 bg-brand-danger/5">
+          <CardContent className="p-4 text-sm text-brand-danger">
+            {error}
           </CardContent>
         </Card>
       )}
 
-      {error ? (
-        <Card className="border-brand-danger/40 bg-[#FDECEC]">
-          <CardContent className="p-3 text-sm text-brand-danger">{error}</CardContent>
-        </Card>
-      ) : null}
+      {result && (
+        <>
+          {/* Summary KPIs */}
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              title="Samlet skat"
+              value={formatDKK(result.result.breakdown.totalTax)}
+              icon={Receipt}
+              size="large"
+            />
+            <KpiCard
+              title="Effektiv skatteprocent"
+              value={`${result.result.effectiveRate.toFixed(1)}%`}
+              icon={Percent}
+            />
+            <KpiCard
+              title="Nettoindkomst"
+              value={formatDKK(result.result.netIncome)}
+              icon={Wallet}
+            />
+            <KpiCard
+              title="Bruttoindkomst"
+              value={formatDKK(grossSalary + equityGains + dividends + askGains + markToMarketGains)}
+              icon={Calculator}
+            />
+          </section>
+
+          {/* Charts Row */}
+          <section className="grid gap-4 lg:grid-cols-2">
+            {/* Personal Tax Composition */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Personlig indkomstskat</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DonutChart
+                  data={taxCompositionData}
+                  height={260}
+                  innerRadius={50}
+                  outerRadius={80}
+                  showLegend={true}
+                  centerValue={`${result.result.effectiveRate.toFixed(0)}%`}
+                  centerLabel="Effektiv"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Investment Tax */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Investeringsskat</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DonutChart
+                  data={investmentTaxData}
+                  height={260}
+                  innerRadius={50}
+                  outerRadius={80}
+                  showLegend={true}
+                  centerValue={formatDKK(
+                    result.result.breakdown.equityTax +
+                    result.result.breakdown.askTax +
+                    result.result.breakdown.markToMarketTax
+                  )}
+                  centerLabel="I alt"
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Tax Breakdown Bar Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Skattefordeling</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <WealthBarChart
+                data={taxBarData}
+                height={280}
+                primaryLabel="Skat"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Audit Details */}
+          {result.result.audits.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Beregningsdetaljer</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {result.result.audits.map((audit, index) => (
+                  <ExplainDrawer key={index} audit={audit} />
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          <DataDebugToggle source="/api/tax (POST)" data={result} />
+        </>
+      )}
     </div>
   );
 }

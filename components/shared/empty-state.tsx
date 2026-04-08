@@ -2,12 +2,13 @@ import Image from "next/image";
 import type { LucideIcon } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 
 interface EmptyStateProps {
   title: string;
   description: string;
-  icon: LucideIcon;
-  illustration: string;
+  icon?: LucideIcon;
+  illustration?: string;
   actionLabel?: string;
   onAction?: () => void;
 }
@@ -15,8 +16,8 @@ interface EmptyStateProps {
 export function EmptyState({
   title,
   description,
-  icon,
-  illustration,
+  icon = HelpCircle,
+  illustration = "/images/empty-states/empty-default.jpg",
   actionLabel,
   onAction,
 }: EmptyStateProps): JSX.Element {

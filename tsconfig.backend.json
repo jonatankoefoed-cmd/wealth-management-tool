@@ -1,16 +1,33 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "strict": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "outDir": "dist",
     "rootDir": ".",
-    "types": ["node"]
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "jsx": "react-jsx",
+    "types": [
+      "node"
+    ]
   },
-  "include": ["prisma/**/*.ts", "scripts/**/*.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "src/**/__tests__/**", "src/**/*.test.ts", "src/**/*.spec.ts"]
+  "include": [
+    "prisma/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/monthlySavings/__tests__/**"
+  ]
 }

@@ -5,18 +5,13 @@
  * Checks cache first, then calls provider if needed.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/db';
 import { PriceQuoteResult, PriceQuoteWithInstrument, PriceProvider } from './types';
 import { getCachedQuote, getLastKnownPrice, saveQuote } from './cache';
 import { stubProvider } from './providers/stubProvider';
 
-let prismaClient: PrismaClient | null = null;
-
-function getPrismaClient(): PrismaClient {
-    if (!prismaClient) {
-        prismaClient = new PrismaClient();
-    }
-    return prismaClient;
+function getPrismaClient() {
+    return prisma;
 }
 
 // Default provider - can be swapped for real provider later
