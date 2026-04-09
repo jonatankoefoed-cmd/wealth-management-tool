@@ -33,7 +33,7 @@ export function KpiCard({
     statusLabel,
     size = "default",
     className,
-}: KpiCardProps): JSX.Element {
+}: KpiCardProps) {
     return (
         <div
             className={cn(

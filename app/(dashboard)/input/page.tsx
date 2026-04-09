@@ -9,7 +9,7 @@ import { HousingPlanTab } from "@/components/input/housing-plan";
 import { EventsTab } from "@/components/input/events";
 import { AssumptionsTab } from "@/components/input/assumptions";
 
-export default function InputPage(): JSX.Element {
+export default function InputPage() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="max-w-3xl space-y-2">

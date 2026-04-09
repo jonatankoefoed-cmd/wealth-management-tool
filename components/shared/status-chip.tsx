@@ -6,7 +6,7 @@ interface StatusChipProps {
   status: string | null | undefined;
 }
 
-export function StatusChip({ status }: StatusChipProps): JSX.Element {
+export function StatusChip({ status }: StatusChipProps) {
   const normalized = (status ?? "FAILED").toUpperCase();
 
   if (normalized === "SUCCESS") {

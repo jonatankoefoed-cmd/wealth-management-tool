@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function SectionLoading(): JSX.Element {
+export function SectionLoading() {
   return (
     <div className="space-y-4">
       <Skeleton className="h-10 w-56" />

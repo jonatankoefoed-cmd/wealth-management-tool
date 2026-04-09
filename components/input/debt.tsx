@@ -19,7 +19,7 @@ function generateId(): string {
     return `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function DebtTab(): JSX.Element {
+export function DebtTab() {
     const [debts, setDebts] = useState<ManualDebt[]>([
         { id: generateId(), name: "", balance: "", rate: "", type: "SU" },
     ]);

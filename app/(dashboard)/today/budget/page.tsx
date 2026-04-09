@@ -38,7 +38,7 @@ function monthKeyFrom(year: number, monthIndex: number): string {
   return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 }
 
-export default function BudgetPage(): JSX.Element {
+export default function BudgetPage() {
   const { inputs, updateInputs, applyBudgetPreset, loading } = useProjectionModel();
 
   const budgetData = useMemo(() => {

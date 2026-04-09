@@ -43,7 +43,7 @@ interface TaxResult {
   };
 }
 
-export default function TaxPage(): JSX.Element {
+export default function TaxPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TaxResult | null>(null);
   const [error, setError] = useState<string | null>(null);

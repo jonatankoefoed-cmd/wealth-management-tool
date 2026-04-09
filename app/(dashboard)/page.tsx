@@ -61,7 +61,7 @@ interface ForecastResponse {
   }>;
 }
 
-export default function OverviewPage(): JSX.Element {
+export default function OverviewPage() {
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
   const [forecast, setForecast] = useState<ForecastResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

@@ -32,7 +32,7 @@ export function Button({
   size = "md",
   type = "button",
   ...props
-}: ButtonProps): JSX.Element {
+}: ButtonProps) {
   return (
     <button
       type={type}

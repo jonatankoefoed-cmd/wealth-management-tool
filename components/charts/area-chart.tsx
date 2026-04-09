@@ -33,7 +33,7 @@ export function WealthAreaChart({
     showSecondary = false,
     valueUnit = "DKK",
     gradientId = "areaGradient",
-}: AreaChartProps): JSX.Element {
+}: AreaChartProps) {
     return (
         <ResponsiveContainer width="100%" height={height}>
             <RechartsAreaChart data={data} margin={CHART_CONFIG.margin}>

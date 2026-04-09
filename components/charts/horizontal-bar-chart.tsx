@@ -31,7 +31,7 @@ export function HorizontalBarChart({
     valueUnit = "DKK",
     barHeight = 32,
     showValues = true,
-}: HorizontalBarChartProps): JSX.Element {
+}: HorizontalBarChartProps) {
     const calculatedHeight = height ?? Math.max(200, data.length * (barHeight + 12) + 40);
 
     return (

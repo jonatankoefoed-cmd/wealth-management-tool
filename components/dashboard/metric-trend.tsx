@@ -20,7 +20,7 @@ export function MetricTrend({
     label,
     showIcon = true,
     size = "sm",
-}: MetricTrendProps): JSX.Element {
+}: MetricTrendProps) {
     const isPositive = direction === "up";
     const isNegative = direction === "down";
     const isNeutral = direction === "neutral";

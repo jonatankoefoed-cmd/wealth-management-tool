@@ -21,7 +21,7 @@ function generateId(): string {
     return `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function HoldingsTab(): JSX.Element {
+export function HoldingsTab() {
     const [holdings, setHoldings] = useState<ManualHolding[]>([
         { id: generateId(), ticker: "", name: "", quantity: "", avgCost: "", currency: "DKK", assetType: "EQUITY" },
     ]);

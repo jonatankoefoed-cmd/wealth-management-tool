@@ -31,7 +31,7 @@ export function DonutChart({
     centerLabel,
     centerValue,
     valueUnit = "DKK",
-}: DonutChartProps): JSX.Element {
+}: DonutChartProps) {
     const total = data.reduce((sum, item) => sum + item.value, 0);
 
     return (

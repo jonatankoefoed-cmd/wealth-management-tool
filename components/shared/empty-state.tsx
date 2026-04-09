@@ -20,7 +20,7 @@ export function EmptyState({
   illustration = "/images/empty-states/empty-default.jpg",
   actionLabel,
   onAction,
-}: EmptyStateProps): JSX.Element {
+}: EmptyStateProps) {
   return (
     <section className="rounded-lg border border-brand-border bg-brand-surface2 p-8 text-center shadow-soft">
       <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-surface">

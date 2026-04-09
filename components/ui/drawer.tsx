@@ -19,7 +19,7 @@ export function Drawer({
   title,
   description,
   children,
-}: DrawerProps): JSX.Element | null {
+}: DrawerProps) | null {
   useEffect(() => {
     if (!open) {
       return;

@@ -16,7 +16,7 @@ function generateId(): string {
     return `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function CryptoTab(): JSX.Element {
+export function CryptoTab() {
     const [cryptos, setCryptos] = useState<ManualCrypto[]>([
         { id: generateId(), ticker: "", name: "", quantity: "", avgCost: "" },
     ]);

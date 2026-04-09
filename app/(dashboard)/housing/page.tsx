@@ -68,7 +68,7 @@ interface HousingDefaults {
   };
 }
 
-export default function HousingPage(): JSX.Element {
+export default function HousingPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<HousingResult | null>(null);
   const [error, setError] = useState<string | null>(null);

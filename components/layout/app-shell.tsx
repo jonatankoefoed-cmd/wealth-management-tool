@@ -22,7 +22,7 @@ function TodayStamp(): string {
   });
 }
 
-export function AppShell({ children }: AppShellProps): JSX.Element {
+export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const currentMeta = getNavigationMeta(pathname);
 

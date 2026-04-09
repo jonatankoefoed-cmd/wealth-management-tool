@@ -127,7 +127,7 @@ export function AuditContent({ audit }: { audit: ExplainAudit }) {
   );
 }
 
-export function ExplainDrawer({ audit, label = "Explain" }: ExplainDrawerProps): JSX.Element {
+export function ExplainDrawer({ audit, label = "Explain" }: ExplainDrawerProps) {
   const [open, setOpen] = useState(false);
 
   return (

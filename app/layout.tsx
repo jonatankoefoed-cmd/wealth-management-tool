@@ -21,7 +21,7 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>): JSX.Element {
+}>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${manrope.variable} ${fraunces.variable} font-sans`}>{children}</body>

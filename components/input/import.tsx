@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText, Trash2, CheckCircle, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-function FormatGuide(): JSX.Element {
+function FormatGuide() {
     const [open, setOpen] = useState(false);
 
     return (
@@ -52,7 +52,7 @@ BTC,Bitcoin,0.5,69846.63,USD,CRYPTO`}
     );
 }
 
-export function ImportTab(): JSX.Element {
+export function ImportTab() {
     const [dragOver, setDragOver] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);

@@ -65,7 +65,7 @@ interface ForecastResponse {
   }>;
 }
 
-export default function PortfolioPage(): JSX.Element {
+export default function PortfolioPage() {
   const [holdings, setHoldings] = useState<HoldingsResponse | null>(null);
   const [forecast, setForecast] = useState<ForecastResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

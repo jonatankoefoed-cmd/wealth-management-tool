@@ -15,7 +15,7 @@ const variantClassMap: Record<BadgeVariant, string> = {
   partial: "bg-[#F8F4E5] text-[#9D7A2C] border-[#E8D8A9]",
 };
 
-export function Badge({ className, variant = "neutral", ...props }: BadgeProps): JSX.Element {
+export function Badge({ className, variant = "neutral", ...props }: BadgeProps) {
   return (
     <span
       className={cn(

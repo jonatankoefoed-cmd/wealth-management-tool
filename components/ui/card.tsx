@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
-export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>): JSX.Element {
+export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <section
       className={cn(
@@ -13,21 +13,21 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>): J
   );
 }
 
-export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>): JSX.Element {
+export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <header className={cn("border-b border-brand-border px-5 py-4", className)} {...props} />;
 }
 
-export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>): JSX.Element {
+export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("px-5 py-4", className)} {...props} />;
 }
 
-export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>): JSX.Element {
+export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return <h3 className={cn("text-sm font-semibold text-brand-text1", className)} {...props} />;
 }
 
 export function CardDescription({
   className,
   ...props
-}: HTMLAttributes<HTMLParagraphElement>): JSX.Element {
+}: HTMLAttributes<HTMLParagraphElement>) {
   return <p className={cn("text-xs text-brand-text2", className)} {...props} />;
 }

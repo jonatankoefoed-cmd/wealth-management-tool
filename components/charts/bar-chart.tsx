@@ -42,7 +42,7 @@ export function WealthBarChart({
     primaryLabel = "Værdi",
     secondaryLabel = "Sekundær",
     barRadius = 6,
-}: BarChartProps): JSX.Element {
+}: BarChartProps) {
     const hasCustomColors = data.some((d) => d.color);
 
     return (

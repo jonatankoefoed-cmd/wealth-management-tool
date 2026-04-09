@@ -36,7 +36,7 @@ export function Icon({
   color = "secondary",
   className,
   label,
-}: IconProps): JSX.Element {
+}: IconProps) {
   return (
     <IconComponent
       aria-hidden={!label}
