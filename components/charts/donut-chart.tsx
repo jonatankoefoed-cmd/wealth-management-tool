@@ -49,7 +49,7 @@ export function DonutChart({
                         animationDuration={CHART_CONFIG.animation.duration}
                         label={
                             showLabels
-                                ? ({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`
+                                ? ({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : "0"}%`
                                 : false
                         }
                     >
@@ -63,7 +63,7 @@ export function DonutChart({
                     </Pie>
                     <Tooltip
                         contentStyle={CHART_CONFIG.tooltip.contentStyle}
-                        formatter={(value: number, name: string) => {
+                        formatter={(value: any, name: any) => {
                             const percent = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
                             return [`${formatChartValue(value, valueUnit)} (${percent}%)`, name];
                         }}

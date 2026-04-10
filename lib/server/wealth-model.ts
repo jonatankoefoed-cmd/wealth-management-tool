@@ -377,7 +377,7 @@ export async function loadHoldingsSnapshot(prisma: PrismaClient, userId: string)
     { key: "CRYPTO", label: "Krypto" },
     { key: "OTHER", label: "Andet" },
   ];
-  const bucketMap = new Map(bucketDefinitions.map((bucket) => [bucket.key, { ...bucket, positions: [] as PortfolioPosition[], valueDKK: 0 }]));
+  const bucketMap = new Map(bucketDefinitions.map((bucket) => [bucket.key, { bucketKey: bucket.key, bucketLabel: bucket.label, positions: [] as PortfolioPosition[], valueDKK: 0 }]));
 
   let totalValueDKK = 0;
   let missingPrices = 0;

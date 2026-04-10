@@ -72,7 +72,7 @@ export function WealthBarChart({
                 <Tooltip
                     contentStyle={CHART_CONFIG.tooltip.contentStyle}
                     labelStyle={CHART_CONFIG.tooltip.labelStyle}
-                    formatter={(value: number) => [formatChartValue(value, valueUnit), ""]}
+                    formatter={(value: any) => [formatChartValue(value, valueUnit), ""]}
                 />
                 {showSecondary && (
                     <Legend

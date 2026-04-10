@@ -82,7 +82,7 @@ export function YearlyCharts({ data }: YearlyChartsProps) {
                                 }}
                                 itemStyle={{ fontSize: '12px', fontWeight: 500 }}
                                 labelStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}
-                                formatter={(val: number) => formatDKK(val) as any}
+                                formatter={(val: any) => formatDKK(val) as any}
                             />
 
                             <Legend wrapperStyle={{ fontSize: '12px' }} />
@@ -157,7 +157,7 @@ export function YearlyCharts({ data }: YearlyChartsProps) {
                                 }}
                                 itemStyle={{ fontSize: '12px', fontWeight: 500 }}
                                 labelStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}
-                                formatter={(val: number) => formatDKK(val) as any}
+                                formatter={(val: any) => formatDKK(val) as any}
                             />
 
                             <Legend wrapperStyle={{ fontSize: '12px' }} />

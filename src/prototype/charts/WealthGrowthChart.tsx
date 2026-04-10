@@ -41,13 +41,13 @@ interface AnimatedAreaChartProps {
 /**
  * Brand-aligned Tooltip Component
  */
-const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-white/95 backdrop-blur-sm p-3 border border-gray-100 rounded-xl shadow-card text-sm">
                 <p className="text-gray-500 mb-1 font-medium">{label}</p>
 
-                {payload.map((entry) => (
+                {payload.map((entry: any) => (
                     <div key={entry.name} className="flex items-center gap-2">
                         <div
                             className="w-2 h-2 rounded-full"
@@ -85,7 +85,7 @@ export const WealthGrowthChart = ({
         <motion.div
             initial="hidden"
             animate="visible"
-            variants={containerVariants}
+            variants={containerVariants as any}
             className="w-full h-full relative"
         >
             <ResponsiveContainer width="100%" height={height}>

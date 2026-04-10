@@ -70,7 +70,7 @@ export function ChartsView({ data }: ChartsViewProps) {
                                         tickFormatter={(val) => `${val / 1000}k`}
                                     />
                                     <Tooltip
-                                        formatter={(val: number) => formatDKK(val)}
+                                        formatter={(val: any) => formatDKK(val)}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     />
                                     <Area type="monotone" dataKey="NetDisposable" stroke="#10b981" fillOpacity={1} fill="url(#colorNet)" name="Net Disposable" />
@@ -101,7 +101,7 @@ export function ChartsView({ data }: ChartsViewProps) {
                                     />
                                     <Tooltip
                                         cursor={{ fill: 'transparent' }}
-                                        formatter={(val: number) => formatDKK(val)}
+                                        formatter={(val: any) => formatDKK(val)}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     />
                                     <Legend />
@@ -135,7 +135,7 @@ export function ChartsView({ data }: ChartsViewProps) {
                                     tickFormatter={(val) => `${val / 1000}k`}
                                 />
                                 <Tooltip
-                                    formatter={(val: number) => formatDKK(val)}
+                                    formatter={(val: any) => formatDKK(val)}
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 />
                                 <Legend />

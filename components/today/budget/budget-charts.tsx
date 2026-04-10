@@ -75,7 +75,7 @@ export function BudgetCharts({ months, yearly }: BudgetChartsProps) {
                             <YAxis axisLine={false} tickLine={false} tick={{ fill: CHART_COLORS.textMuted, fontSize: 11 }} tickFormatter={formatChartLabel} />
                             <Tooltip
                                 contentStyle={CHART_CONFIG.tooltip.contentStyle}
-                                formatter={(value: number) => [formatChartValue(value, "DKK"), ""]}
+                                formatter={(value: any) => [formatChartValue(value, "DKK"), ""]}
                             />
                             <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
                             <Bar dataKey="invest" name="Investering" stackId="a" fill={CHART_COLORS.primary} radius={[0, 0, 0, 0]} />

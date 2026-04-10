@@ -74,7 +74,7 @@ export function BudgetCategoriesTab() {
 
                 <Button
                     onClick={() => applyBudgetPreset?.('sophisticated_research')}
-                    variant="outline"
+                    variant="secondary"
                     className="group border-brand-accent/30 bg-brand-accent/5 hover:bg-brand-accent/10 text-brand-accent gap-2 h-11 px-6 rounded-2xl shadow-soft transition-all active:scale-95"
                 >
                     <Sparkles className="w-4 h-4 fill-brand-accent/20 group-hover:scale-110 transition-transform" />

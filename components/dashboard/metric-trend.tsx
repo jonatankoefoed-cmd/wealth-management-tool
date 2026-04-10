@@ -54,7 +54,7 @@ export function MetricTrend({
                 {showIcon && (
                     <Icon
                         icon={trendIcon}
-                        size={size === "sm" ? 12 : 14}
+                        size={(size === "sm" ? 12 : 14) as any}
                         className={colorClass}
                     />
                 )}

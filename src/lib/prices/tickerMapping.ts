@@ -18,7 +18,7 @@ interface TickerMapFile {
     funds: Record<string, TickerMapping>;
 }
 
-const tickerMap = tickerMapData as TickerMapFile;
+const tickerMap = tickerMapData as unknown as TickerMapFile;
 
 /**
  * Get mapping for an ISIN or identifier.

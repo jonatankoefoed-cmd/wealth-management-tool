@@ -45,7 +45,7 @@ export default function BudgetPage() {
     if (!inputs) return null;
 
     const year = new Date().getFullYear();
-    const baseline = inputs.baseline || {};
+    const baseline: any = inputs.baseline || {};
     const housing = normalizeHousingInput(inputs.housing ?? createDefaultHousingInput(year));
     const annualBonus = numberOr(baseline.annualBonus);
     const monthlyGross = numberOr(baseline.monthlyGrossIncome, 65_000);
@@ -193,8 +193,8 @@ export default function BudgetPage() {
     return <SectionLoading />;
   }
 
-  const baseline = inputs.baseline || {};
-  const returns = inputs.return_assumptions || { equityPct: 0.07 };
+  const baseline: any = inputs.baseline || {};
+  const returns: any = inputs.return_assumptions || { equityPct: 0.07 };
   const addCategory = () => {
     const categories = (inputs.budget_categories as BudgetCategory[] | undefined) ?? [];
     updateInputs({

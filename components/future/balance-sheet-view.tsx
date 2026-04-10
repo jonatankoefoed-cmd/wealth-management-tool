@@ -76,7 +76,7 @@ function StatusChip({ status, label }: { status: "ok" | "warning" | "error"; lab
 
     return (
         <div className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium", colors[status])}>
-            <Icon icon={icons[status]} size={12} />
+            <Icon icon={icons[status]} size={16} />
             {label}
         </div>
     );
@@ -323,7 +323,7 @@ export function BalanceSheetView() {
                                                 title="View Reconciliation"
                                                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-brand-surface/50 rounded"
                                             >
-                                                <Icon icon={HelpCircle} size={14} className="text-brand-text2" />
+                                                <Icon icon={HelpCircle} size={16} className="text-brand-text2" />
                                             </button>
                                         )}
                                     </div>

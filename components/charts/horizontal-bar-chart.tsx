@@ -57,7 +57,7 @@ export function HorizontalBarChart({
                 />
                 <Tooltip
                     contentStyle={CHART_CONFIG.tooltip.contentStyle}
-                    formatter={(value: number) => [formatChartValue(value, valueUnit), ""]}
+                    formatter={(value: any) => [formatChartValue(value, valueUnit), ""]}
                 />
                 <Bar
                     dataKey="value"
@@ -70,7 +70,7 @@ export function HorizontalBarChart({
                                 position: "right",
                                 fill: CHART_COLORS.textMuted,
                                 fontSize: 12,
-                                formatter: (value: number) => formatChartValue(value, valueUnit),
+                                formatter: (value: any) => formatChartValue(value, valueUnit),
                             }
                             : false
                     }

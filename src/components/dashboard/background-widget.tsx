@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { Icon } from "@/components/icons/Icon";
+import { Icon } from "@/components/ui/icon";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface BackgroundWidgetProps {
@@ -100,7 +100,7 @@ export function BackgroundWidget({
                             icon={icon}
                             size={18}
                             // If background exists, force 'invert' (white), else use default 'secondary'
-                            color={backgroundImage ? 'invert' : 'secondary'}
+                            color={(backgroundImage ? 'invert' : 'secondary') as any}
                         />
                     </div>
                 </div>

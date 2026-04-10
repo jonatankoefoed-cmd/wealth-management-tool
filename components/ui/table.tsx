@@ -1,4 +1,4 @@
-import React, { type HTMLAttributes, type TableHTMLAttributes } from "react";
+import React, { type HTMLAttributes, type TableHTMLAttributes, type TdHTMLAttributes, type ThHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
 export function TableShell({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
@@ -25,7 +25,7 @@ export function THead({ className, ...props }: HTMLAttributes<HTMLTableSectionEl
   return <thead className={cn("sticky top-0 z-10 bg-brand-surface", className)} {...props} />;
 }
 
-export function TH({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {
+export function TH({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
       className={cn(
@@ -49,7 +49,7 @@ export function TR({ className, ...props }: HTMLAttributes<HTMLTableRowElement>)
   );
 }
 
-export function TD({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {
+export function TD({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
   return <td className={cn("px-4 py-3 text-sm text-brand-text1", className)} {...props} />;
 }
 

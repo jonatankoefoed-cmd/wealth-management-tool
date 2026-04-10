@@ -30,7 +30,7 @@ interface ExplainDrawerProps {
 
 function formatAuditValue(value: string | number, unit?: string): string {
   if (unit === "DKK") {
-    return formatDKK(value);
+    return formatDKK(Number(value));
   }
   if (typeof value === "number") {
     return `${value}${unit ? ` ${unit}` : ""}`;
