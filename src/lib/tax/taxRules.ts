@@ -371,12 +371,10 @@ export function loadTaxRules(taxYear: number): TaxRules {
 
     let rules: TaxRules;
 
-    switch (taxYear) {
-        case 2026:
-            rules = rules2026 as unknown as TaxRules;
-            break;
-        default:
-            throw new Error(`Tax rules not available for year ${taxYear}. Available: 2026`);
+    if (taxYear >= 2026) {
+        rules = rules2026 as unknown as TaxRules;
+    } else {
+        throw new Error(`Tax rules not available for year ${taxYear}. Available: 2026`);
     }
 
     const validation = validateTaxRulesShape(rules);
