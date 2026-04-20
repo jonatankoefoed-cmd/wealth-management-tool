@@ -120,7 +120,7 @@ async function main() {
         totalDkkValue += valueDkk;
 
         // Determine AssetType
-        let assetType = AssetType.STOCK;
+        let assetType: AssetType = AssetType.STOCK;
         if (name.toLowerCase().includes('etf') || name.toLowerCase().includes('acc') || name.toLowerCase().includes('dist')) {
             assetType = AssetType.ETF;
         } else if (name.toLowerCase().includes('indeks') || name.toLowerCase().includes(' kl')) {
