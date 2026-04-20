@@ -43,6 +43,7 @@ export interface SimulationInputs {
     };
     budget_overrides?: Array<{ category: string; monthlyAmount: number }>;
     budget_categories?: Array<{ category: string; amount: number; group: string; type: 'fixed' | 'variable' }>;
+    income_categories?: Array<{ category: string; amount: number; type: 'fixed' | 'variable' }>;
     events?: Array<{
         id: string;
         name: string;
