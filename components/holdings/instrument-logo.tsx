@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 
+import { BrandService, SecurityType } from "@/src/lib/brands/BrandService";
+
 interface InstrumentLogoProps {
   ticker: string | null;
   name: string;
+  isin?: string | null;
   assetType?: string;
   className?: string;
   size?: "sm" | "md" | "lg";
@@ -14,6 +17,7 @@ interface InstrumentLogoProps {
 export function InstrumentLogo({
   ticker,
   name,
+  isin,
   assetType,
   className,
   size = "md"
@@ -24,13 +28,17 @@ export function InstrumentLogo({
   
   // Decide which API to use based on asset type or ticker patterns
   const isCrypto = assetType === "OTHER" || ["BTC", "ETH", "SOL", "USDT", "BETH", "ADA", "ALGO", "AVAX", "DOT"].includes(cleanTicker);
+  const isFund = assetType === "MUTUAL_FUND" || assetType === "FUND";
+  const isEtf = assetType === "ETF";
   
-  let logoUrl = "";
-  if (isCrypto) {
-    logoUrl = `https://coinicons-api.vercel.app/api/icon/${cleanTicker.toLowerCase()}`;
-  } else if (cleanTicker) {
-    logoUrl = `https://img.logokit.com/ticker/${cleanTicker}`;
-  }
+  const securityType: SecurityType = isCrypto ? 'crypto' : isEtf ? 'etf' : isFund ? 'fund' : 'stock';
+  
+  const primaryUrl = BrandService.getLogoUrl(cleanTicker, securityType, name, isin);
+  const fallbackUrl = BrandService.getFallbackUrl(cleanTicker, securityType, name);
+  
+  // Track fallback state
+  const [useFallback, setUseFallback] = useState(false);
+  const logoUrl = error ? null : (useFallback && fallbackUrl ? fallbackUrl : primaryUrl);
 
   const sizeClasses = {
     sm: "h-6 w-6 text-[10px]",
@@ -73,7 +81,13 @@ export function InstrumentLogo({
           src={logoUrl}
           alt={name}
           className="h-full w-full object-contain p-1.5"
-          onError={() => setError(true)}
+          onError={() => {
+            if (!useFallback && fallbackUrl) {
+              setUseFallback(true);
+            } else {
+              setError(true);
+            }
+          }}
         />
       ) : (
         <span>{initials}</span>

@@ -22,6 +22,7 @@ interface Position {
   instrumentId: string;
   name: string;
   ticker: string | null;
+  isin?: string | null;
   quantity: number;
   avgCost: number;
   assetType?: string;
@@ -265,6 +266,7 @@ export default function PortfolioPage() {
                         <InstrumentLogo 
                           ticker={position.ticker} 
                           name={position.name} 
+                          isin={position.isin}
                           assetType={position.assetType}
                           className="hover:scale-105 transition-transform"
                         />

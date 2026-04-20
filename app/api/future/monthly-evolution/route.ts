@@ -24,7 +24,8 @@ export async function GET(request: Request): Promise<Response> {
 
         const monthlyGrossStart = Number(inputs.baseline?.monthlyGrossIncome || 65000);
         const pensionRate = Number(inputs.baseline?.pensionContributionRate || 0);
-        const growthPath = inputs.salary_growth_path?.yearlyPct || Array(horizonYears).fill(2);
+        const growthPct = Number(inputs.baseline?.salaryGrowthPct ?? 0.02);
+        const growthPath = inputs.salary_growth_path?.yearlyPct || Array(horizonYears).fill(growthPct * 100);
 
         // Bonus Logic
         const annualBonus = Number(inputs.baseline?.annualBonus || 0);

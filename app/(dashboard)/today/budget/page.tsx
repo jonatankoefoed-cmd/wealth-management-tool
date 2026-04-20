@@ -416,6 +416,40 @@ export default function BudgetPage() {
                     />
                   </label>
                 </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2 text-sm text-brand-text2">
+                    <span>Udvidet lønstigning (%)</span>
+                    <input
+                      type="number"
+                      value={(normalizePercent(baseline.salaryGrowthPct, 0.02) * 100).toFixed(1)}
+                      onChange={(event) =>
+                        updateInputs({
+                          baseline: {
+                            ...baseline,
+                            salaryGrowthPct: Number(event.target.value) / 100,
+                          },
+                        })
+                      }
+                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm text-brand-text2">
+                    <span>Årlig inflation (%)</span>
+                    <input
+                      type="number"
+                      value={(normalizePercent(baseline.inflationRatePct, 0.02) * 100).toFixed(1)}
+                      onChange={(event) =>
+                        updateInputs({
+                          baseline: {
+                            ...baseline,
+                            inflationRatePct: Number(event.target.value) / 100,
+                          },
+                        })
+                      }
+                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
+                    />
+                  </label>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
