@@ -4,6 +4,7 @@ import {
   LineChart,
   ReceiptText,
   Wallet,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,6 +27,12 @@ export const NAV_ITEMS: NavigationItem[] = [
     label: "Budget",
     icon: ReceiptText,
     description: "Monthly P&L and scenario editing",
+  },
+  {
+    href: "/budget-inputs",
+    label: "Budget Inputs",
+    icon: SlidersHorizontal,
+    description: "Assumptions Control Center",
   },
   {
     href: "/portfolio",
@@ -54,8 +61,11 @@ export function getNavigationMeta(pathname: string): NavigationItem {
   if (pathname.startsWith("/today/budget")) {
     return NAV_ITEMS[1];
   }
-  if (pathname.startsWith("/portfolio") || pathname.startsWith("/future")) {
+  if (pathname.startsWith("/budget-inputs")) {
     return NAV_ITEMS[2];
+  }
+  if (pathname.startsWith("/portfolio") || pathname.startsWith("/future")) {
+    return NAV_ITEMS[3];
   }
   return {
     href: pathname,
