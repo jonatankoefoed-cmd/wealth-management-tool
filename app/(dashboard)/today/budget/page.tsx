@@ -22,6 +22,12 @@ type BudgetCategory = {
   type: "fixed" | "variable";
 };
 
+type IncomeCategory = {
+  category: string;
+  amount: number;
+  type: "fixed" | "variable";
+};
+
 const GROUPS = ["Housing", "Utilities", "Transport", "Food", "Subscriptions", "Insurance", "Other"] as const;
 
 function numberOr(value: unknown, fallback = 0): number {
@@ -55,6 +61,12 @@ export default function BudgetPage() {
       ...category,
       amount: numberOr(category.amount),
       group: GROUPS.includes(category.group as (typeof GROUPS)[number]) ? category.group : "Other",
+    }));
+
+    const rawIncome = ((inputs.income_categories as IncomeCategory[] | undefined) ?? []).map((category) => ({
+      ...category,
+      amount: numberOr(category.amount),
+      type: category.type || "fixed",
     }));
 
     const grouped = GROUPS.reduce(
@@ -102,20 +114,22 @@ export default function BudgetPage() {
     };
 
     const totalExpenses = Object.values(grouped).reduce((sum, amount) => sum + amount, 0);
-    const averageNetAfterTax = monthlyGross + annualBonus / 12 - monthlyTax.total;
+    const totalOtherIncome = rawIncome.reduce((sum, item) => sum + item.amount, 0);
+    const averageNetAfterTax = monthlyGross + totalOtherIncome + (annualBonus / 12) - monthlyTax.total;
     const invest = savingsRate > 0 ? averageNetAfterTax * savingsRate : fixedContribution;
 
     const months = Array.from({ length: 12 }, (_, monthIndex) => {
       const bonus = monthIndex === 2 ? annualBonus : 0;
-      const totalIncome = monthlyGross + bonus;
+      const totalIncome = monthlyGross + bonus + totalOtherIncome;
       const netDisposable = totalIncome - monthlyTax.total - totalExpenses;
       return {
         monthKey: monthKeyFrom(year, monthIndex),
         income: {
           salary: monthlyGross,
           bonus,
-          other: 0,
+          other: totalOtherIncome,
           total: totalIncome,
+          custom: rawIncome,
         },
         expenses: {
           housing: grouped.Housing,
@@ -126,6 +140,7 @@ export default function BudgetPage() {
           insurance: grouped.Insurance,
           other: grouped.Other,
           total: totalExpenses,
+          custom: rawCategories,
         },
         tax: monthlyTax,
         netDisposable,
@@ -180,6 +195,7 @@ export default function BudgetPage() {
       year,
       grouped,
       rawCategories,
+      rawIncome,
       monthlyGross,
       annualBonus,
       invest,
@@ -214,6 +230,27 @@ export default function BudgetPage() {
   const removeCategory = (index: number) => {
     const categories = (((inputs.budget_categories as BudgetCategory[] | undefined) ?? [])).filter((_, categoryIndex) => categoryIndex !== index);
     updateInputs({ budget_categories: categories });
+  };
+
+  const addIncomeCategory = () => {
+    const categories = (inputs.income_categories as IncomeCategory[] | undefined) ?? [];
+    updateInputs({
+      income_categories: [
+        ...categories,
+        { category: "Ny indkomst", amount: 0, type: "variable" },
+      ],
+    });
+  };
+
+  const updateIncomeCategory = (index: number, updates: Partial<IncomeCategory>) => {
+    const categories = [ ...(((inputs.income_categories as IncomeCategory[] | undefined) ?? [])) ];
+    categories[index] = { ...categories[index], ...updates };
+    updateInputs({ income_categories: categories });
+  };
+
+  const removeIncomeCategory = (index: number) => {
+    const categories = (((inputs.income_categories as IncomeCategory[] | undefined) ?? [])).filter((_, categoryIndex) => categoryIndex !== index);
+    updateInputs({ income_categories: categories });
   };
 
   return (
@@ -269,70 +306,212 @@ export default function BudgetPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <Card className="border-brand-border/70 bg-brand-surface shadow-soft">
-          <CardHeader>
-            <CardTitle>Core assumptions</CardTitle>
-            <CardDescription>Update the three inputs that move your monthly budget the most.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="income" className="space-y-4">
-              <TabsList className="h-auto rounded-full bg-brand-surface2 p-1">
-                <TabsTrigger value="income" className="rounded-full px-4 py-2 text-xs data-[state=active]:shadow-none">Income</TabsTrigger>
-                <TabsTrigger value="spend" className="rounded-full px-4 py-2 text-xs data-[state=active]:shadow-none">Spend</TabsTrigger>
-                <TabsTrigger value="strategy" className="rounded-full px-4 py-2 text-xs data-[state=active]:shadow-none">Strategy</TabsTrigger>
-              </TabsList>
+      {/* NEW: Assumptions Control Center */}
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-xl font-bold text-brand-text1">Assumptions Control Center</h2>
+          <p className="text-sm text-brand-text2">
+            Manage all your income, expenses, and strategic inputs that flow into the monthly P&amp;L.
+          </p>
+        </div>
 
-              <TabsContent value="income" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Månedlig bruttoløn</span>
-                    <input
-                      type="number"
-                      value={numberOr(baseline.monthlyGrossIncome, 65_000)}
-                      onChange={(event) => updateInputs({ baseline: { ...baseline, monthlyGrossIncome: Number(event.target.value) } })}
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Årlig bonus</span>
-                    <input
-                      type="number"
-                      value={numberOr(baseline.annualBonus, 0)}
-                      onChange={(event) => updateInputs({ baseline: { ...baseline, annualBonus: Number(event.target.value) } })}
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                </div>
-              </TabsContent>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Base Strategy & Anchors */}
+          <Card className="border-brand-border/70 bg-brand-surface shadow-soft h-fit">
+            <CardHeader className="border-b border-brand-border/50 bg-brand-surface2/50 pb-4">
+              <CardTitle>Base Strategy</CardTitle>
+              <CardDescription>Core drivers of your financial simulation.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Månedlig bruttoløn</span>
+                  <input
+                    type="number"
+                    value={numberOr(baseline.monthlyGrossIncome, 65_000)}
+                    onChange={(event) => updateInputs({ baseline: { ...baseline, monthlyGrossIncome: Number(event.target.value) } })}
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Årlig bonus</span>
+                  <input
+                    type="number"
+                    value={numberOr(baseline.annualBonus, 0)}
+                    onChange={(event) => updateInputs({ baseline: { ...baseline, annualBonus: Number(event.target.value) } })}
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Savings rate (%)</span>
+                  <input
+                    type="number"
+                    value={(normalizePercent(baseline.savingsRatePct, 0) * 100).toFixed(0)}
+                    onChange={(event) =>
+                      updateInputs({
+                        baseline: {
+                          ...baseline,
+                          savingsRatePct: Number(event.target.value) / 100,
+                          monthlyLiquidSavings: baseline.monthlyLiquidSavings,
+                        },
+                      })
+                    }
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Fixed investment (DKK)</span>
+                  <input
+                    type="number"
+                    value={numberOr(baseline.monthlyLiquidSavings, 5_000)}
+                    onChange={(event) =>
+                      updateInputs({
+                        baseline: {
+                          ...baseline,
+                          monthlyLiquidSavings: Number(event.target.value),
+                          savingsRatePct: 0,
+                        },
+                      })
+                    }
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Udvidet lønstigning (%)</span>
+                  <input
+                    type="number"
+                    value={(normalizePercent(baseline.salaryGrowthPct, 0.02) * 100).toFixed(1)}
+                    onChange={(event) =>
+                      updateInputs({
+                        baseline: {
+                          ...baseline,
+                          salaryGrowthPct: Number(event.target.value) / 100,
+                        },
+                      })
+                    }
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Årlig inflation (%)</span>
+                  <input
+                    type="number"
+                    value={(normalizePercent(baseline.inflationRatePct, 0.02) * 100).toFixed(1)}
+                    onChange={(event) =>
+                      updateInputs({
+                        baseline: {
+                          ...baseline,
+                          inflationRatePct: Number(event.target.value) / 100,
+                        },
+                      })
+                    }
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Expected equity return (%)</span>
+                  <input
+                    type="number"
+                    value={(normalizePercent(returns.equityPct, 0.07) * 100).toFixed(1)}
+                    onChange={(event) =>
+                      updateInputs({
+                        return_assumptions: { ...returns, equityPct: Number(event.target.value) / 100 },
+                      })
+                    }
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-brand-text2">
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Forecast horizon (mdr)</span>
+                  <input
+                    type="number"
+                    value={numberOr(inputs.months, 120)}
+                    onChange={(event) => updateInputs({ months: Number(event.target.value) })}
+                    className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                  />
+                </label>
+              </div>
+            </CardContent>
+          </Card>
 
-              <TabsContent value="spend" className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-brand-text1">Budget categories</p>
-                  <Button variant="ghost" className="gap-2 text-brand-text2" onClick={addCategory}>
-                    <Plus className="h-4 w-4" />
-                    Add line
-                  </Button>
+          <div className="flex flex-col gap-6">
+            {/* Custom Income */}
+            <Card className="border-brand-border/70 bg-brand-surface shadow-soft flex-1">
+              <CardHeader className="border-b border-brand-border/50 bg-brand-surface2/50 pb-4 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Additional Income streams</CardTitle>
                 </div>
+                <Button variant="ghost" size="sm" className="gap-2 h-8 text-brand-text2 rounded-full hover:bg-brand-surface border border-brand-border" onClick={addIncomeCategory}>
+                  <Plus className="h-3 w-3" />
+                  Add
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-3">
+                  {budgetData.rawIncome.length === 0 && (
+                    <p className="text-xs text-brand-text3 text-center py-2">No additional income added.</p>
+                  )}
+                  {budgetData.rawIncome.map((category, index) => (
+                    <div key={`inc-${index}`} className="grid gap-2 grid-cols-[1.5fr_1fr_auto]">
+                      <input
+                        type="text"
+                        value={category.category}
+                        onChange={(event) => updateIncomeCategory(index, { category: event.target.value })}
+                        className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-accent focus:outline-none"
+                        placeholder="Income name"
+                      />
+                      <input
+                        type="number"
+                        value={numberOr(category.amount)}
+                        onChange={(event) => updateIncomeCategory(index, { amount: Number(event.target.value) })}
+                        className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-brand-accent focus:outline-none"
+                        placeholder="0 DKK"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeIncomeCategory(index)}
+                        className="rounded-xl border border-brand-border px-3 text-brand-text3 bg-white shadow-sm transition-colors hover:border-brand-danger/20 hover:text-brand-danger"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Custom Expenses */}
+            <Card className="border-brand-border/70 bg-brand-surface shadow-soft flex-1">
+              <CardHeader className="border-b border-brand-border/50 bg-brand-surface2/50 pb-4 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Custom Budget lines</CardTitle>
+                </div>
+                <Button variant="ghost" size="sm" className="gap-2 h-8 text-brand-text2 rounded-full hover:bg-brand-surface border border-brand-border" onClick={addCategory}>
+                  <Plus className="h-3 w-3" />
+                  Add
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6">
                 <div className="space-y-3">
                   {budgetData.rawCategories.map((category, index) => (
-                    <div key={`${category.category}-${index}`} className="grid gap-3 rounded-2xl border border-brand-border bg-white p-4 md:grid-cols-[1.4fr_0.7fr_0.8fr_auto]">
+                    <div key={`exp-${index}`} className="grid gap-2 grid-cols-[1.2fr_0.8fr_0.8fr_auto]">
                       <input
                         type="text"
                         value={category.category}
                         onChange={(event) => updateCategory(index, { category: event.target.value })}
-                        className="rounded-xl border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+                        className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-accent focus:outline-none"
+                        placeholder="Expense name"
                       />
                       <input
                         type="number"
                         value={numberOr(category.amount)}
                         onChange={(event) => updateCategory(index, { amount: Number(event.target.value) })}
-                        className="rounded-xl border border-brand-border bg-brand-surface2 px-3 py-2 text-sm tabular-nums"
+                        className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-brand-accent focus:outline-none"
                       />
                       <select
                         value={category.group}
                         onChange={(event) => updateCategory(index, { group: event.target.value })}
-                        className="rounded-xl border border-brand-border bg-brand-surface2 px-3 py-2 text-sm"
+                        className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-accent focus:outline-none"
                       >
                         {GROUPS.map((group) => (
                           <option key={group} value={group}>
@@ -343,118 +522,21 @@ export default function BudgetPage() {
                       <button
                         type="button"
                         onClick={() => removeCategory(index)}
-                        className="rounded-xl border border-brand-border px-3 text-brand-text3 transition-colors hover:border-brand-danger/20 hover:text-brand-danger"
+                        className="rounded-xl border border-brand-border px-3 text-brand-text3 bg-white shadow-sm transition-colors hover:border-brand-danger/20 hover:text-brand-danger"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
                 </div>
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
 
-              <TabsContent value="strategy" className="space-y-5">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Savings rate (%)</span>
-                    <input
-                      type="number"
-                      value={(normalizePercent(baseline.savingsRatePct, 0) * 100).toFixed(0)}
-                      onChange={(event) =>
-                        updateInputs({
-                          baseline: {
-                            ...baseline,
-                            savingsRatePct: Number(event.target.value) / 100,
-                            monthlyLiquidSavings: baseline.monthlyLiquidSavings,
-                          },
-                        })
-                      }
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Fixed investment amount</span>
-                    <input
-                      type="number"
-                      value={numberOr(baseline.monthlyLiquidSavings, 5_000)}
-                      onChange={(event) =>
-                        updateInputs({
-                          baseline: {
-                            ...baseline,
-                            monthlyLiquidSavings: Number(event.target.value),
-                            savingsRatePct: 0,
-                          },
-                        })
-                      }
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Expected equity return (%)</span>
-                    <input
-                      type="number"
-                      value={(normalizePercent(returns.equityPct, 0.07) * 100).toFixed(1)}
-                      onChange={(event) =>
-                        updateInputs({
-                          return_assumptions: {
-                            ...returns,
-                            equityPct: Number(event.target.value) / 100,
-                          },
-                        })
-                      }
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Forecast horizon (months)</span>
-                    <input
-                      type="number"
-                      value={numberOr(inputs.months, 120)}
-                      onChange={(event) => updateInputs({ months: Number(event.target.value) })}
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Udvidet lønstigning (%)</span>
-                    <input
-                      type="number"
-                      value={(normalizePercent(baseline.salaryGrowthPct, 0.02) * 100).toFixed(1)}
-                      onChange={(event) =>
-                        updateInputs({
-                          baseline: {
-                            ...baseline,
-                            salaryGrowthPct: Number(event.target.value) / 100,
-                          },
-                        })
-                      }
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                  <label className="space-y-2 text-sm text-brand-text2">
-                    <span>Årlig inflation (%)</span>
-                    <input
-                      type="number"
-                      value={(normalizePercent(baseline.inflationRatePct, 0.02) * 100).toFixed(1)}
-                      onChange={(event) =>
-                        updateInputs({
-                          baseline: {
-                            ...baseline,
-                            inflationRatePct: Number(event.target.value) / 100,
-                          },
-                        })
-                      }
-                      className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-lg font-semibold tabular-nums"
-                    />
-                  </label>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
+      {/* NEW: Full Width Charts */}
+      <section className="pt-8 mb-6">
         <BudgetCharts months={budgetData.months} yearly={budgetData.yearly} />
       </section>
 

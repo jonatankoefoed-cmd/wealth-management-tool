@@ -99,8 +99,12 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                         {expanded.has("Income") && (
                             <>
                                 {renderRow("Salary (gross)", months.map(m => m.income.salary), yearly.income.salary)}
-                                {renderRow("Bonus", months.map(m => m.income.bonus), yearly.income.bonus)}
-                                {renderRow("Other income", months.map(m => m.income.other), yearly.income.other)}
+                                {yearly.income.bonus > 0 && renderRow("Bonus", months.map(m => m.income.bonus), yearly.income.bonus)}
+                                {months[0]?.income.custom?.map((cat: any, i: number) => {
+                                    const monthVals = months.map(m => m.income.custom[i]?.amount || 0);
+                                    const totalVal = monthVals.reduce((sum, v) => sum + v, 0);
+                                    return totalVal > 0 ? renderRow(cat.category || "Unknown Income", monthVals, totalVal) : null;
+                                })}
                                 {renderRow("Total Income (gross)", months.map(m => m.income.total), yearly.income.total, true)}
                             </>
                         )}
@@ -109,13 +113,33 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                         {renderGroupHeader("Expenses", "Total Expenses", months.map(m => m.expenses.total), yearly.expenses.total)}
                         {expanded.has("Expenses") && (
                             <>
-                                {renderRow("Rent / Housing", months.map(m => m.expenses.housing), yearly.expenses.housing)}
-                                {renderRow("Utilities", months.map(m => m.expenses.utilities), yearly.expenses.utilities)}
-                                {renderRow("Transport", months.map(m => m.expenses.transport), yearly.expenses.transport)}
-                                {renderRow("Food", months.map(m => m.expenses.food), yearly.expenses.food)}
-                                {renderRow("Subscriptions", months.map(m => m.expenses.subscriptions), yearly.expenses.subscriptions)}
-                                {renderRow("Insurance", months.map(m => m.expenses.insurance), yearly.expenses.insurance)}
-                                {renderRow("Other", months.map(m => m.expenses.other), yearly.expenses.other)}
+                                {/* Base models deducted by custom items that share the group */}
+                                {(() => {
+                                    const customH = months[0]?.expenses.custom?.filter((c: any) => c.group === "Housing").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
+                                    const baseHousing = months.map(m => m.expenses.housing - customH);
+                                    const totalHousing = baseHousing.reduce((s, v) => s + v, 0);
+                                    return totalHousing > 0 ? renderRow("Housing (Base Model)", baseHousing, totalHousing) : null;
+                                })()}
+                                {(() => {
+                                    const customU = months[0]?.expenses.custom?.filter((c: any) => c.group === "Utilities").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
+                                    const baseUtil = months.map(m => m.expenses.utilities - customU);
+                                    const totalUtil = baseUtil.reduce((s, v) => s + v, 0);
+                                    return totalUtil > 0 ? renderRow("Utilities (Base Model)", baseUtil, totalUtil) : null;
+                                })()}
+                                {(() => {
+                                    const customI = months[0]?.expenses.custom?.filter((c: any) => c.group === "Insurance").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
+                                    const baseIns = months.map(m => m.expenses.insurance - customI);
+                                    const totalIns = baseIns.reduce((s, v) => s + v, 0);
+                                    return totalIns > 0 ? renderRow("Insurance (Base Model)", baseIns, totalIns) : null;
+                                })()}
+
+                                {/* Custom individual rows */}
+                                {months[0]?.expenses.custom?.map((cat: any, i: number) => {
+                                    const monthVals = months.map(m => m.expenses.custom[i]?.amount || 0);
+                                    const totalVal = monthVals.reduce((sum, v) => sum + v, 0);
+                                    return renderRow(cat.category || "Unknown Expense", monthVals, totalVal);
+                                })}
+
                                 {renderRow("Total Expenses", months.map(m => m.expenses.total), yearly.expenses.total, true, "text-brand-danger")}
                             </>
                         )}

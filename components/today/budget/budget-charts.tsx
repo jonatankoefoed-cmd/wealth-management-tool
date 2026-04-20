@@ -54,21 +54,21 @@ export function BudgetCharts({ months, yearly }: BudgetChartsProps) {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="border-brand-border/70 shadow-soft">
                 <CardHeader>
                     <CardTitle className="text-sm font-medium">Til rådighed over tid</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <WealthAreaChart data={disposableData} height={250} />
+                    <WealthAreaChart data={disposableData} height={320} />
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-brand-border/70 shadow-soft">
                 <CardHeader>
                     <CardTitle className="text-sm font-medium">Allokering pr. måned</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
+                    <ResponsiveContainer width="100%" height={320}>
                         <BarChart data={allocationData} margin={CHART_CONFIG.margin}>
                             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} vertical={false} />
                             <XAxis dataKey="label" axisLine={{ stroke: CHART_COLORS.grid }} tickLine={false} tick={{ fill: CHART_COLORS.textMuted, fontSize: 11 }} />
