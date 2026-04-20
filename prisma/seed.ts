@@ -1,6 +1,4 @@
-export {};
-
-const {
+import {
   Prisma,
   PrismaClient,
   AccountType,
@@ -13,7 +11,7 @@ const {
   DebtPostingType,
   ImportKind,
   ImportStatus,
-} = require('@prisma/client');
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -144,7 +142,7 @@ async function seedDatabase() {
         kind: ImportKind.TRANSACTIONS_CSV,
         status: ImportStatus.PARTIAL,
         sourceFile: 'seed/transactions.csv',
-        errorsJson: [{ row: 5, reason: 'Missing fee currency; defaulted to DKK' }],
+        errorsJson: [{ row: 5, reason: 'Missing fee currency; defaulted to DKK' } as any],
       },
     }),
     prisma.importJob.create({
@@ -423,14 +421,14 @@ async function seedDatabase() {
             valueJson: {
               model: 'high_growth',
               yearlyPct: [7, 6, 5, 4],
-            },
+            } as any,
           },
           {
             key: 'return_assumptions',
             valueJson: {
               equityPct: 0.07,
               bondPct: 0.03,
-            },
+            } as any,
           },
         ],
       },
@@ -452,18 +450,11 @@ async function main() {
   console.log(JSON.stringify(seeded, null, 2));
 }
 
-if (require.main === module) {
-  main()
-    .catch((error: unknown) => {
-      console.error('Seed failed:', error);
-      process.exitCode = 1;
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
-}
-
-module.exports = {
-  seedDatabase,
-  resetDatabase,
-};
+main()
+  .catch((error: unknown) => {
+    console.error('Seed failed:', error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

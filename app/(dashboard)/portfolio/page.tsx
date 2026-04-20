@@ -14,12 +14,17 @@ import { SectionLoading } from "@/components/shared/section-loading";
 import { fetchJson } from "@/lib/client";
 import { formatDKK } from "@/lib/format";
 import { ALLOCATION_PALETTE } from "@/components/charts/chart-theme";
+import { PriceRefresher } from "@/components/holdings/price-refresher";
+import { InstrumentLogo } from "@/components/holdings/instrument-logo";
+import { cn } from "@/lib/cn";
 
 interface Position {
   instrumentId: string;
   name: string;
   ticker: string | null;
   quantity: number;
+  avgCost: number;
+  assetType?: string;
   priceDate: string | null;
   valueDKK: number | null;
   missingPrice: boolean;
@@ -84,17 +89,30 @@ export default function PortfolioPage() {
 
   const allPositions = useMemo(() => holdings?.buckets.flatMap((bucket) => bucket.positions) ?? [], [holdings]);
 
-  const allocationData = useMemo<DonutChartDataPoint[]>(
-    () =>
-      allPositions
-        .filter((position) => (position.valueDKK ?? 0) > 0)
-        .map((position, index) => ({
-          name: position.ticker || position.name,
-          value: position.valueDKK ?? 0,
-          color: ALLOCATION_PALETTE[index % ALLOCATION_PALETTE.length],
-        })),
-    [allPositions],
-  );
+  const allocationData = useMemo<DonutChartDataPoint[]>(() => {
+    if (!allPositions.length) return [];
+
+    const sorted = [...allPositions].sort((a, b) => (b.valueDKK ?? 0) - (a.valueDKK ?? 0));
+    const mainPositions = sorted.slice(0, 10);
+    const others = sorted.slice(10);
+
+    const data: DonutChartDataPoint[] = mainPositions.map((p, i) => ({
+      name: p.ticker || p.name,
+      value: p.valueDKK ?? 0,
+      color: ALLOCATION_PALETTE[i % ALLOCATION_PALETTE.length],
+    }));
+
+    if (others.length > 0) {
+      const othersValue = others.reduce((sum, p) => sum + (p.valueDKK ?? 0), 0);
+      data.push({
+        name: "Others",
+        value: othersValue,
+        color: "#94a3b8", // Slate-400
+      });
+    }
+
+    return data;
+  }, [allPositions]);
 
   const topHoldings = useMemo<HorizontalBarDataPoint[]>(
     () =>
@@ -151,19 +169,22 @@ export default function PortfolioPage() {
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="overflow-hidden border-brand-border/70 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(250,248,239,0.96))] shadow-card">
           <CardContent className="space-y-5 p-8">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-brand-text3">Portfolio and forecast</p>
                 <h2 className="mt-2 text-3xl font-semibold tracking-tight text-brand-text1">
                   {formatDKK(holdings.totals.portfolioValueDKK)}
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-brand-text2">
-                  Current composition, top positions and the forward portfolio path under the same assumptions as the budget workspace.
+                  Current composition, top positions and the forward portfolio path.
                 </p>
               </div>
-              <div className="rounded-full border border-brand-border bg-white px-3 py-1 text-xs font-medium text-brand-text2">
-                <Calendar className="mr-2 inline h-3.5 w-3.5" />
-                {holdings.asOfDate}
+              <div className="flex flex-col items-end gap-3">
+                <PriceRefresher />
+                <div className="rounded-full border border-brand-border bg-white px-3 py-1 text-[10px] font-medium text-brand-text3 uppercase tracking-wider">
+                  <Calendar className="mr-1.5 inline h-3 w-3" />
+                  As of {holdings.asOfDate}
+                </div>
               </div>
             </div>
             <WealthAreaChart data={portfolioChart} height={280} showSecondary={true} />
@@ -209,64 +230,88 @@ export default function PortfolioPage() {
         />
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Allocation today</CardTitle>
-            <CardDescription>Weighted by current DKK market value.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DonutChart
-              data={allocationData}
-              height={300}
-              innerRadius={60}
-              outerRadius={88}
-              centerValue={formatDKK(holdings.totals.portfolioValueDKK)}
-              centerLabel="Portfolio"
-              showLegend={true}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Largest positions</CardTitle>
-            <CardDescription>Your biggest concentration points right now.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <HorizontalBarChart data={topHoldings} height={300} />
-          </CardContent>
-        </Card>
-      </section>
-
       {holdings.buckets.map((bucket) => (
         <TableShell key={bucket.bucketKey}>
-          <div className="flex items-center justify-between border-b border-brand-border px-5 py-4">
+          <div className={cn(
+            "flex items-center justify-between border-b border-brand-border px-5 py-4",
+            bucket.bucketKey === "CRYPTO" && "bg-[linear-gradient(90deg,rgba(247,147,26,0.05),transparent)] border-l-4 border-l-[#F7931A]"
+          )}>
             <div>
-              <h3 className="text-sm font-semibold text-brand-text1">{bucket.bucketLabel}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-brand-text1">{bucket.bucketLabel}</h3>
+                {bucket.bucketKey === "CRYPTO" && (
+                  <span className="rounded-full bg-[#F7931A]/10 px-2 py-0.5 text-[10px] font-bold text-[#F7931A]">LIVE</span>
+                )}
+              </div>
               <p className="text-xs text-brand-text2">{formatDKK(bucket.valueDKK)}</p>
             </div>
           </div>
           <TableWrap>
             <Table>
               <THead>
-                <TR>
-                  <TH>Position</TH>
-                  <TH>Ticker</TH>
+                <TR className="border-b-0 hover:bg-transparent">
+                  <TH className="py-5 pl-6">Position</TH>
                   <TH className="text-right">Value</TH>
+                  <TH className="text-right">Price</TH>
                   <TH className="text-right">Quantity</TH>
-                  <TH className="text-right">Price status</TH>
+                  <TH className="text-right pr-6">Status</TH>
                 </TR>
               </THead>
               <TableBody>
                 {bucket.positions.map((position) => (
-                  <TR key={position.instrumentId}>
-                    <TD>{position.name}</TD>
-                    <TD>{position.ticker || "-"}</TD>
-                    <TD className="text-right tabular-nums">{formatDKK(position.valueDKK ?? 0)}</TD>
-                    <TD className="text-right tabular-nums">{position.quantity.toLocaleString("da-DK")}</TD>
-                    <TD className="text-right text-xs text-brand-text2">
-                      {position.missingPrice ? "Fallback price" : position.priceDate || "-"}
+                  <TR key={position.instrumentId} className="group border-b border-brand-border/40 last:border-0 hover:bg-brand-surface/40 transition-all duration-300">
+                    <TD className="py-4 pl-6">
+                      <div className="flex items-center gap-4">
+                        <InstrumentLogo 
+                          ticker={position.ticker} 
+                          name={position.name} 
+                          assetType={position.assetType}
+                          className="hover:scale-105 transition-transform"
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-brand-text1 text-sm tracking-tight">{position.name}</span>
+                          <span className="font-mono text-[10px] text-brand-text3 uppercase tracking-wider">{position.ticker || "N/A"}</span>
+                        </div>
+                        {bucket.bucketKey === "CRYPTO" && (
+                          <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                        )}
+                      </div>
+                    </TD>
+                    <TD className="text-right tabular-nums">
+                      <div className="flex flex-col items-end">
+                        <span className="font-bold text-brand-text1">{formatDKK(position.valueDKK ?? 0)}</span>
+                        <span className="text-[10px] text-brand-text3">Value DKK</span>
+                      </div>
+                    </TD>
+                    <TD className="text-right tabular-nums text-xs">
+                      <div className="flex flex-col items-end">
+                        <span className="text-brand-text2 font-medium">{formatDKK(position.avgCost)}</span>
+                        <span className="text-[9px] text-brand-text3 uppercase tracking-tighter">Avg Cost</span>
+                      </div>
+                    </TD>
+                    <TD className="text-right tabular-nums text-sm">
+                      <div className="flex flex-col items-end">
+                        <span className="text-brand-text1 font-medium">{position.quantity.toLocaleString("da-DK", { maximumFractionDigits: 8 })}</span>
+                        <span className="text-[9px] text-brand-text3 uppercase tracking-tighter">Units</span>
+                      </div>
+                    </TD>
+                    <TD className="text-right pr-6">
+                      {bucket.bucketKey === "CRYPTO" ? (
+                        <div className="flex flex-col items-end">
+                          <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-600 shadow-sm border border-green-100">Live</span>
+                          <span className="text-[9px] text-brand-text3 mt-0.5">Binance</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-end">
+                          <span className={cn(
+                            "text-[10px] font-medium",
+                            position.missingPrice ? "text-amber-600" : "text-brand-text2"
+                          )}>
+                            {position.missingPrice ? "Manual" : (position.priceDate || "Today")}
+                          </span>
+                          <span className="text-[9px] text-brand-text3 uppercase tracking-tighter mt-0.5">Price Date</span>
+                        </div>
+                      )}
                     </TD>
                   </TR>
                 ))}

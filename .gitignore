@@ -54,3 +54,5 @@ tsconfig.tsbuildinfo
 
 # Prisma
 prisma/migrations/**/migration_lock.toml
+.vercel
+.env*.local

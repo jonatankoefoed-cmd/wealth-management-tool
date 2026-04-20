@@ -4,6 +4,7 @@ import YahooFinance from "yahoo-finance2";
 import { getPrismaClient } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AssetType } from "@prisma/client";
+import { fetchBinanceQuotes, toBinanceSymbol } from "@/src/lib/prices/binanceClient";
 
 interface PriceUpdateResult {
     symbol: string;
@@ -40,7 +41,7 @@ interface SearchCandidate {
 
 const CRYPTO_TICKERS = new Set([
     "BTC", "ETH", "SOL", "AVAX", "DOT", "USDT", "LUNA", "LUNC",
-    "PEPE", "XRP", "ADA", "DOGE", "ALGO", "BETH"
+    "PEPE", "XRP", "ADA", "DOGE", "ALGO", "BETH", "EUR"
 ]);
 
 const yahooFinance = new YahooFinance({
@@ -323,10 +324,63 @@ export async function refreshPrices(): Promise<{
         const results: PriceUpdateResult[] = [];
         let successCount = 0;
 
-        // Process sequentially to reduce risk of Yahoo rate limiting.
-        for (const instrument of instruments) {
-            const fallbackSymbol = instrument.ticker?.trim().toUpperCase() || instrument.name;
+        // 2. Separate crypto from others
+        const cryptoInstruments = instruments.filter(i => isLikelyCryptoTicker(i.ticker, i.name));
+        const otherInstruments = instruments.filter(i => !isLikelyCryptoTicker(i.ticker, i.name));
 
+        // 3. Process Crypto using Binance (Fast & Real-time)
+        if (cryptoInstruments.length > 0) {
+            try {
+                const tickerToId = new Map(cryptoInstruments.map(i => [toBinanceSymbol(i.ticker!), i.id]));
+                const symbols = Array.from(tickerToId.keys());
+                const quotes = await fetchBinanceQuotes(symbols);
+
+                for (const instrument of cryptoInstruments) {
+                    const binanceSymbol = toBinanceSymbol(instrument.ticker!);
+                    const quote = quotes.get(binanceSymbol);
+
+                    if (quote) {
+                        const existing = await prisma.price.findFirst({
+                            where: { instrumentId: instrument.id, date: today }
+                        });
+
+                        const data = {
+                            instrumentId: instrument.id,
+                            date: today,
+                            close: quote.price,
+                            currency: quote.currency || "USD",
+                            source: "binance"
+                        };
+
+                        if (existing) {
+                            await prisma.price.update({ where: { id: existing.id }, data });
+                        } else {
+                            await prisma.price.create({ data });
+                        }
+
+                        results.push({
+                            symbol: instrument.ticker || instrument.name,
+                            status: "success",
+                            price: quote.price,
+                            currency: quote.currency || "USD"
+                        });
+                        successCount++;
+                    } else {
+                        results.push({
+                            symbol: instrument.ticker || instrument.name,
+                            status: "failed",
+                            error: "Binance quote not found"
+                        });
+                    }
+                }
+            } catch (err: any) {
+                console.error("Binance refresh failed:", err);
+            }
+        }
+
+        // 4. Process Others using Yahoo Finance
+        for (const instrument of otherInstruments) {
+            const fallbackSymbol = instrument.ticker?.trim().toUpperCase() || instrument.name;
             try {
                 const resolved = await resolveQuote({
                     ticker: instrument.ticker,
@@ -337,11 +391,7 @@ export async function refreshPrices(): Promise<{
                 });
 
                 if (!resolved) {
-                    results.push({
-                        symbol: fallbackSymbol,
-                        status: "failed",
-                        error: "Could not resolve Yahoo symbol with market price"
-                    });
+                    results.push({ symbol: fallbackSymbol, status: "failed", error: "Could not resolve Yahoo symbol" });
                     continue;
                 }
 
@@ -349,31 +399,21 @@ export async function refreshPrices(): Promise<{
                 const currency = resolved.currency;
 
                 const existing = await prisma.price.findFirst({
-                    where: {
-                        instrumentId: instrument.id,
-                        date: today
-                    }
+                    where: { instrumentId: instrument.id, date: today }
                 });
 
+                const data = {
+                    instrumentId: instrument.id,
+                    date: today,
+                    close: price,
+                    currency: currency || instrument.currency || "DKK",
+                    source: "yahoo",
+                };
+
                 if (existing) {
-                    await prisma.price.update({
-                        where: { id: existing.id },
-                        data: {
-                            close: price,
-                            source: "yahoo",
-                            currency: currency || instrument.currency || "DKK",
-                        }
-                    });
+                    await prisma.price.update({ where: { id: existing.id }, data });
                 } else {
-                    await prisma.price.create({
-                        data: {
-                            instrumentId: instrument.id,
-                            date: today,
-                            close: price,
-                            currency: currency || instrument.currency || "DKK",
-                            source: "yahoo",
-                        }
-                    });
+                    await prisma.price.create({ data });
                 }
 
                 results.push({
@@ -383,20 +423,19 @@ export async function refreshPrices(): Promise<{
                     currency: currency || instrument.currency || "DKK"
                 });
                 successCount++;
-
             } catch (err: any) {
                 results.push({ symbol: fallbackSymbol, status: "failed", error: err?.message ?? "Unknown error" });
             }
         }
 
         try {
-            revalidatePath("/today/net-worth");
+            revalidatePath("/(dashboard)/portfolio", "page");
+            revalidatePath("/(dashboard)/overview", "page");
         } catch {
-            // `revalidatePath` is not available in non-request contexts (e.g. scripts/tests).
+            // Ignore revalidation errors in scripts
         }
 
         return { success: true, results, count: successCount };
-
     } catch (error) {
         console.error("Price refresh failed:", error);
         return { success: false, results: [], count: 0 };

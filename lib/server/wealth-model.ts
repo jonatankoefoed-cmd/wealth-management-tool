@@ -22,6 +22,7 @@ export interface PortfolioPosition {
   quantity: number;
   avgCost: number;
   currency: string | null;
+  assetType: string;
   price: number | null;
   priceDate: string | null;
   value: number | null;
@@ -400,6 +401,7 @@ export async function loadHoldingsSnapshot(prisma: PrismaClient, userId: string)
         quantity,
         avgCost,
         currency,
+        assetType: line.instrument.assetType,
         price: close,
         priceDate: latestPrice?.date?.toISOString().split("T")[0] ?? null,
         value,
@@ -417,7 +419,18 @@ export async function loadHoldingsSnapshot(prisma: PrismaClient, userId: string)
 
       if (accountName.includes("ASK") || accountName.includes("AKTIESPAREKONTO")) {
         bucketKey = "ASK";
-      } else if (["BTC", "ETH", "SOL"].includes(ticker) || instrumentName.includes("BITCOIN") || instrumentName.includes("ETHEREUM")) {
+      } else if (
+        accountName.includes("BINANCE") ||
+        accountName.includes("KRYPTO") ||
+        accountName.includes("COINBASE") ||
+        currency === "USDT" ||
+        ["BTC", "ETH", "SOL", "ADA", "DOT", "AVAX", "ALGO", "BETH", "EUR"].includes(ticker) ||
+        instrumentName.includes("BITCOIN") ||
+        instrumentName.includes("ETHEREUM") ||
+        instrumentName.includes("SOLANA") ||
+        instrumentName.includes("CARDANO") ||
+        instrumentName.includes("BINANCE")
+      ) {
         bucketKey = "CRYPTO";
       } else if (accountName.includes("DEPOT") || accountName.includes("NORDNET") || accountName.includes("BROKERAGE")) {
         bucketKey = "DEPOT";

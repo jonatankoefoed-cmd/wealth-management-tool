@@ -44,28 +44,35 @@ export function DonutChart({
                         cy="50%"
                         innerRadius={innerRadius}
                         outerRadius={outerRadius}
-                        paddingAngle={2}
+                        paddingAngle={3}
                         dataKey="value"
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth={1}
                         animationDuration={CHART_CONFIG.animation.duration}
-                        label={
-                            showLabels
-                                ? ({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : "0"}%`
-                                : false
-                        }
                     >
                         {data.map((entry, index) => (
                             <Cell
                                 key={`cell-${index}`}
                                 fill={entry.color ?? ALLOCATION_PALETTE[index % ALLOCATION_PALETTE.length]}
-                                stroke="none"
+                                className="transition-opacity duration-300 hover:opacity-80 cursor-pointer outline-none"
                             />
                         ))}
                     </Pie>
                     <Tooltip
-                        contentStyle={CHART_CONFIG.tooltip.contentStyle}
+                        contentStyle={{
+                            ...CHART_CONFIG.tooltip.contentStyle,
+                            borderRadius: '12px',
+                            border: '1px solid rgba(0,0,0,0.05)',
+                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                            padding: '10px 14px'
+                        }}
+                        cursor={{ fill: 'transparent' }}
                         formatter={(value: any, name: any) => {
                             const percent = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
-                            return [`${formatChartValue(value, valueUnit)} (${percent}%)`, name];
+                            return [
+                                <span key="val" className="font-semibold text-brand-text1">{formatChartValue(value, valueUnit)}</span>,
+                                <span key="name" className="text-brand-text2 text-xs">{name} ({percent}%)</span>
+                            ];
                         }}
                     />
                     {showLegend && (
@@ -74,27 +81,29 @@ export function DonutChart({
                             align="center"
                             verticalAlign="bottom"
                             iconType="circle"
-                            iconSize={8}
+                            iconSize={6}
                             wrapperStyle={{
-                                paddingTop: 16,
-                                fontSize: 13,
+                                paddingTop: 24,
+                                fontSize: 11,
+                                opacity: 0.8
                             }}
                             formatter={(value) => (
-                                <span className="text-brand-text2">{value}</span>
+                                <span className="text-brand-text2 font-medium hover:text-brand-text1 transition-colors">{value}</span>
                             )}
                         />
                     )}
                 </PieChart>
             </ResponsiveContainer>
             {(centerLabel || centerValue) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none translate-y-[-12px]">
                     {centerValue && (
-                        <span className="text-xl font-semibold text-brand-text1 tabular-nums">
-                            {centerValue}
+                        <span className="text-2xl font-bold tracking-tight text-brand-text1 tabular-nums">
+                            {centerValue.replace(" kr.", "")}
+                            <span className="ml-1 text-sm font-medium text-brand-text3">kr</span>
                         </span>
                     )}
                     {centerLabel && (
-                        <span className="text-xs text-brand-text2 uppercase tracking-wide">
+                        <span className="text-[10px] text-brand-text3 uppercase tracking-[0.2em] font-medium mt-0.5">
                             {centerLabel}
                         </span>
                     )}
