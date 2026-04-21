@@ -1,4 +1,6 @@
 "use client";
+ 
+import { TrendingUp, BriefcaseBusiness } from "lucide-react";
 
 import {
     BarChart,
