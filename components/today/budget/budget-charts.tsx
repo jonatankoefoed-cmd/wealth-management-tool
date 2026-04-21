@@ -70,7 +70,6 @@ export function BudgetCharts({ months, yearly }: BudgetChartsProps) {
                         <WealthAreaChart 
                            data={disposableData} 
                            height={320}
-                           gradientColor="var(--brand-accent)"
                         />
                     </div>
                 </CardContent>
