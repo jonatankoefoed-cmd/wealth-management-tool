@@ -98,6 +98,16 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                         {renderGroupHeader("Indkomst", "Indkomst i alt", months.map(m => m.income.total), yearly.income.total)}
                         {expanded.has("Indkomst") && (
                             <>
+                                {renderRow("Indkomst i alt (brutto)", months.map(m => m.income.total), yearly.income.total, true)}
+                                {renderRow("Nettoindkomst", months.map(m => m.income.total - m.tax.total), (yearly.income.total - yearly.tax.total), true, "text-brand-success bg-brand-success/5")}
+                                {(() => {
+                                    const monthRates = months.map(m => m.income.total > 0 ? (m.tax.total / m.income.total) * 100 : 0);
+                                    const totalRate = yearly.income.total > 0 ? (yearly.tax.total / yearly.income.total) * 100 : 0;
+                                    return renderRow("Effektiv skattesats (%)", monthRates, totalRate, true, "text-brand-text2 font-medium italic", true);
+                                })()}
+                                
+                                <tr className="h-4 bg-brand-surface2" />
+
                                 {renderRow("Løn (brutto)", months.map(m => m.income.salary), yearly.income.salary)}
                                 {yearly.income.bonus > 0 && renderRow("Bonus", months.map(m => m.income.bonus), yearly.income.bonus)}
                                 {months[0]?.income.custom?.map((cat: any, i: number) => {
@@ -105,7 +115,6 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                                     const totalVal = monthVals.reduce((sum, v) => sum + v, 0);
                                     return totalVal > 0 ? renderRow(cat.category || "Ukendt indkomst", monthVals, totalVal) : null;
                                 })}
-                                {renderRow("Indkomst i alt (brutto)", months.map(m => m.income.total), yearly.income.total, true)}
                             </>
                         )}
 
@@ -118,19 +127,19 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                                     const customH = months[0]?.expenses.custom?.filter((c: any) => c.group === "Housing").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
                                     const baseHousing = months.map(m => m.expenses.housing - customH);
                                     const totalHousing = baseHousing.reduce((s, v) => s + v, 0);
-                                    return totalHousing > 0 ? renderRow("Bolig (Base Model)", baseHousing, totalHousing) : null;
+                                    return totalHousing > 0 ? renderRow("Bolig", baseHousing, totalHousing) : null;
                                 })()}
                                 {(() => {
                                     const customU = months[0]?.expenses.custom?.filter((c: any) => c.group === "Utilities").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
                                     const baseUtil = months.map(m => m.expenses.utilities - customU);
                                     const totalUtil = baseUtil.reduce((s, v) => s + v, 0);
-                                    return totalUtil > 0 ? renderRow("Forsyning (Base Model)", baseUtil, totalUtil) : null;
+                                    return totalUtil > 0 ? renderRow("Forsyning", baseUtil, totalUtil) : null;
                                 })()}
                                 {(() => {
                                     const customI = months[0]?.expenses.custom?.filter((c: any) => c.group === "Insurance").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
                                     const baseIns = months.map(m => m.expenses.insurance - customI);
                                     const totalIns = baseIns.reduce((s, v) => s + v, 0);
-                                    return totalIns > 0 ? renderRow("Forsikring (Base Model)", baseIns, totalIns) : null;
+                                    return totalIns > 0 ? renderRow("Forsikring", baseIns, totalIns) : null;
                                 })()}
 
                                 {/* Custom individual rows */}
@@ -160,24 +169,6 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                                 {renderRow("Skat i alt", months.map(m => m.tax.total), yearly.tax.total, true)}
                             </>
                         )}
-
-                        {/* NETTO OVERBLIK */}
-                        <tr className="bg-brand-surface border-y border-brand-border font-bold">
-                            <td className="sticky left-0 z-20 bg-inherit px-4 py-3 text-xs uppercase tracking-wider text-brand-text1">
-                                Netto Overblik
-                            </td>
-                            <td colSpan={headers.length - 1} className="px-4 py-2 text-right text-xs text-brand-text3 font-normal italic">
-                                Opsummering af indkomst efter skat
-                            </td>
-                        </tr>
-                        {renderRow("Bruttoindkomst i alt", months.map(m => m.income.total), yearly.income.total, true)}
-                        {renderRow("Skat i alt", months.map(m => m.tax.total), yearly.tax.total, true, "text-brand-danger")}
-                        {renderRow("Nettoindkomst", months.map(m => m.income.total - m.tax.total), (yearly.income.total - yearly.tax.total), true, "text-brand-success bg-brand-success/5")}
-                        {(() => {
-                            const monthRates = months.map(m => m.income.total > 0 ? (m.tax.total / m.income.total) * 100 : 0);
-                            const totalRate = yearly.income.total > 0 ? (yearly.tax.total / yearly.income.total) * 100 : 0;
-                            return renderRow("Effektiv skattesats (%)", monthRates, totalRate, true, "text-brand-text2 font-medium italic", true);
-                        })()}
 
                         {/* D) OPSPARING & INVESTERING */}
                         {renderGroupHeader("Opsparing & Investering", "Resterende", months.map(m => m.allocations.residual), yearly.allocations.residual)}
