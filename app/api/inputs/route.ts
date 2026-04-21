@@ -40,13 +40,46 @@ export async function GET(): Promise<Response> {
             });
         }
 
-        // Transform overrides array { key, valueJson } into a single object
         const inputs = scenario.overrides.reduce((acc, curr) => {
             acc[curr.key] = curr.valueJson;
             return acc;
         }, {} as Record<string, any>);
 
         inputs.housing = normalizeHousingInput(inputs.housing ?? createDefaultHousingInput(2026));
+
+        // Auto-migrate to new housing standard
+        if (inputs.housing?.budgetIntegration) {
+            if (inputs.housing.budgetIntegration.utilities !== 0 || inputs.housing.budgetIntegration.insurance !== 0) {
+                 inputs.housing.budgetIntegration.utilities = 0;
+                 inputs.housing.budgetIntegration.insurance = 0;
+            }
+        }
+
+        // Auto-migrate to new sophisticated categories if Opsparing is missing
+        if (!inputs.budget_categories || !Array.isArray(inputs.budget_categories) || !inputs.budget_categories.some((c: any) => c.group === 'Opsparing')) {
+            const BUDGET_PRESETS = {
+                sophisticated_research: {
+                    categories: [
+                        { category: 'Dagligvare', amount: 1750, group: 'Mad', type: 'variable' },
+                        { category: 'Restaurant', amount: 1000, group: 'Mad', type: 'variable' },
+                        { category: 'Fitness', amount: 448, group: 'Abonnementer', type: 'fixed' },
+                        { category: 'Chat GPT', amount: 183, group: 'Abonnementer', type: 'fixed' },
+                        { category: 'Byen', amount: 1500, group: 'Fritid', type: 'variable' },
+                        { category: 'Transport', amount: 200, group: 'Transport', type: 'variable' },
+                        { category: 'Materiel forbrug', amount: 400, group: 'Andet', type: 'variable' },
+                        { category: 'Gaver', amount: 250, group: 'Andet', type: 'variable' },
+                        { category: 'Uforudset (pr md.)', amount: 400, group: 'Andet', type: 'variable' },
+                        { category: 'Investering', amount: 500, group: 'Opsparing', type: 'fixed' },
+                        { category: 'Opsparing', amount: 500, group: 'Opsparing', type: 'fixed' },
+                        { category: 'Ferieopsparing boys', amount: 250, group: 'Opsparing', type: 'fixed' },
+                    ]
+                }
+            };
+            inputs.budget_categories = BUDGET_PRESETS.sophisticated_research.categories;
+            if (inputs.baseline) {
+                inputs.baseline.monthlyNonHousingExpenses = inputs.budget_categories.reduce((acc: number, c: any) => acc + c.amount, 0);
+            }
+        }
 
         return ok(inputs);
     } catch (error) {
