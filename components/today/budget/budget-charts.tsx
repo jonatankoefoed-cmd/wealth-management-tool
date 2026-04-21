@@ -53,36 +53,92 @@ export function BudgetCharts({ months, yearly }: BudgetChartsProps) {
     ] : [];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="border-brand-border/70 shadow-soft">
-                <CardHeader>
-                    <CardTitle className="text-sm font-medium">Til rådighed over tid</CardTitle>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="border-brand-border/40 bg-white/50 backdrop-blur-md shadow-soft overflow-hidden group">
+                <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-brand-text3">Til rådighed over tid</CardTitle>
+                        <div className="h-8 w-8 rounded-full bg-brand-accent/5 flex items-center justify-center">
+                            <TrendingUp size={14} className="text-brand-accent" />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <WealthAreaChart data={disposableData} height={320} />
+                    <div className="h-[320px] w-full pt-4">
+                        <WealthAreaChart 
+                           data={disposableData} 
+                           height={320}
+                           gradientColor="var(--brand-accent)"
+                        />
+                    </div>
                 </CardContent>
             </Card>
 
-            <Card className="border-brand-border/70 shadow-soft">
-                <CardHeader>
-                    <CardTitle className="text-sm font-medium">Allokering pr. måned</CardTitle>
+            <Card className="border-brand-border/40 bg-white/50 backdrop-blur-md shadow-soft overflow-hidden group">
+                <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-brand-text3">Allokering pr. måned</CardTitle>
+                        <div className="h-8 w-8 rounded-full bg-brand-success/10 flex items-center justify-center">
+                            <BriefcaseBusiness size={14} className="text-brand-success" />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <ResponsiveContainer width="100%" height={320}>
-                        <BarChart data={allocationData} margin={CHART_CONFIG.margin}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} vertical={false} />
-                            <XAxis dataKey="label" axisLine={{ stroke: CHART_COLORS.grid }} tickLine={false} tick={{ fill: CHART_COLORS.textMuted, fontSize: 11 }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: CHART_COLORS.textMuted, fontSize: 11 }} tickFormatter={formatChartLabel} />
-                            <Tooltip
-                                contentStyle={CHART_CONFIG.tooltip.contentStyle}
-                                formatter={(value: any) => [formatChartValue(value, "DKK"), ""]}
-                            />
-                            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                            <Bar dataKey="invest" name="Investering" stackId="a" fill={CHART_COLORS.primary} radius={[0, 0, 0, 0]} />
-                            <Bar dataKey="savings" name="Likvid opsparing" stackId="a" fill={CHART_COLORS.success} radius={[0, 0, 0, 0]} />
-                            <Bar dataKey="residual" name="Overskydende cash" stackId="a" fill={CHART_COLORS.secondary} radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <div className="h-[320px] w-full pt-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={allocationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorInvest" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.9}/>
+                                        <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0.6}/>
+                                    </linearGradient>
+                                    <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={CHART_COLORS.success} stopOpacity={0.9}/>
+                                        <stop offset="95%" stopColor={CHART_COLORS.success} stopOpacity={0.6}/>
+                                    </linearGradient>
+                                    <linearGradient id="colorResidual" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={CHART_COLORS.secondary} stopOpacity={0.9}/>
+                                        <stop offset="95%" stopColor={CHART_COLORS.secondary} stopOpacity={0.6}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} vertical={false} />
+                                <XAxis 
+                                    dataKey="label" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: CHART_COLORS.textMuted, fontSize: 10, fontWeight: 600 }} 
+                                />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: CHART_COLORS.textMuted, fontSize: 10 }} 
+                                    tickFormatter={formatChartLabel} 
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                                    contentStyle={{
+                                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                        backdropFilter: 'blur(8px)',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(0,0,0,0.05)',
+                                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                                    }}
+                                    itemStyle={{ fontSize: '11px', fontWeight: 600 }}
+                                    formatter={(value: any) => [formatChartValue(value, "DKK"), ""]}
+                                />
+                                <Legend 
+                                    verticalAlign="top" 
+                                    align="right" 
+                                    iconType="circle" 
+                                    iconSize={6} 
+                                    wrapperStyle={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: '20px' }} 
+                                />
+                                <Bar dataKey="invest" name="Investering" stackId="a" fill="url(#colorInvest)" radius={[2, 2, 0, 0]} barSize={32} />
+                                <Bar dataKey="savings" name="Løbende opsparing" stackId="a" fill="url(#colorSavings)" radius={[2, 2, 0, 0]} barSize={32} />
+                                <Bar dataKey="residual" name="Overskydende cash" stackId="a" fill="url(#colorResidual)" radius={[4, 4, 0, 0]} barSize={32} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </CardContent>
             </Card>
         </div>

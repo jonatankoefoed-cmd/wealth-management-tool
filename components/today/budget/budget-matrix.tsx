@@ -81,11 +81,11 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
             <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left">
                     <thead>
-                        <tr className="bg-brand-surface border-b border-brand-border">
+                        <tr className="bg-brand-surface border-b border-brand-border/80">
                             {headers.map((h, i) => (
                                 <th key={i} className={cn(
-                                    "px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-brand-text3",
-                                    i === 0 && "sticky left-0 z-30 bg-inherit border-r border-brand-border/50",
+                                    "px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-brand-text3 antialiased whitespace-nowrap",
+                                    i === 0 && "sticky left-0 z-30 bg-brand-surface border-r border-brand-border/50 shadow-[4px_0_10px_-2px_rgba(0,0,0,0.02)]",
                                     i > 0 && "text-right"
                                 )}>
                                     {h}
@@ -119,15 +119,15 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                         )}
 
                         {/* B) UDGIFTER */}
-                        {renderGroupHeader("Udgifter", "Udgifter i alt", months.map(m => m.expenses.total), yearly.expenses.total)}
-                        {expanded.has("Udgifter") && (
+                        {renderGroupHeader("Faste & Variable udgifter", "Udgifter i alt", months.map(m => m.expenses.total - m.expenses.opsparing), yearly.expenses.total - yearly.expenses.opsparing)}
+                        {expanded.has("Faste & Variable udgifter") && (
                             <>
                                 {/* Base models deducted by custom items that share the group */}
                                 {(() => {
                                     const customH = months[0]?.expenses.custom?.filter((c: any) => c.group === "Housing").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
                                     const baseHousing = months.map(m => m.expenses.housing - customH);
                                     const totalHousing = baseHousing.reduce((s, v) => s + v, 0);
-                                    return totalHousing > 0 ? renderRow("Bolig", baseHousing, totalHousing) : null;
+                                    return totalHousing > 0 ? renderRow("Bolig drift", baseHousing, totalHousing) : null;
                                 })()}
                                 {(() => {
                                     const customU = months[0]?.expenses.custom?.filter((c: any) => c.group === "Utilities").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
@@ -142,16 +142,49 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                                     return totalIns > 0 ? renderRow("Forsikring", baseIns, totalIns) : null;
                                 })()}
 
-                                {/* Custom individual rows */}
-                                {months[0]?.expenses.custom?.map((cat: any, i: number) => {
-                                    const monthVals = months.map(m => m.expenses.custom[i]?.amount || 0);
+                                {/* Custom individual rows (excluding Opsparing) */}
+                                {months[0]?.expenses.custom?.filter((cat: any) => cat.group !== "Opsparing").map((cat: any, i: number) => {
+                                    const index = months[0].expenses.custom.indexOf(cat);
+                                    const monthVals = months.map(m => m.expenses.custom[index]?.amount || 0);
                                     const totalVal = monthVals.reduce((sum, v) => sum + v, 0);
                                     return renderRow(cat.category || "Ukendt udgift", monthVals, totalVal);
                                 })}
 
-                                {renderRow("Udgifter i alt", months.map(m => m.expenses.total), yearly.expenses.total, true, "text-brand-danger")}
+                                {renderRow("Variable udgifter i alt", months.map(m => m.expenses.total - m.expenses.opsparing), yearly.expenses.total - yearly.expenses.opsparing, true, "text-brand-text2 bg-brand-surface/40")}
                             </>
                         )}
+
+                        {/* B.2) NY OPSPARING GRUPPE */}
+                        {renderGroupHeader("Opsparingsposter", "Opsparing i alt", months.map(m => m.expenses.opsparing), yearly.expenses.opsparing)}
+                        {expanded.has("Opsparingsposter") && (
+                            <>
+                                {months[0]?.expenses.custom?.filter((cat: any) => cat.group === "Opsparing").map((cat: any, i: number) => {
+                                    const index = months[0].expenses.custom.indexOf(cat);
+                                    const monthVals = months.map(m => m.expenses.custom[index]?.amount || 0);
+                                    const totalVal = monthVals.reduce((sum, v) => sum + v, 0);
+                                    return renderRow(cat.category || "Opsparing post", monthVals, totalVal, false, "text-brand-primary/80");
+                                })}
+                                {renderRow("Total Opsparing (Faste poster)", months.map(m => m.expenses.opsparing), yearly.expenses.opsparing, true, "bg-brand-primary/5 text-brand-primary")}
+                            </>
+                        )}
+
+                        {/* SUB-TOTAL: Efter alle udgifter */}
+                        <tr className="bg-brand-surface2/80 font-black border-y border-brand-border">
+                            <td className="sticky left-0 z-20 bg-inherit px-4 py-3 text-xs uppercase tracking-widest text-brand-text1">
+                                Total Cashflow Overskud
+                            </td>
+                            {months.map((m, i) => (
+                                <td key={i} className="px-3 py-2 text-right text-xs tabular-nums text-brand-text1">
+                                    {formatDKK(m.income.total - m.expenses.total - m.tax.total)}
+                                </td>
+                            ))}
+                            <td className="px-3 py-2 text-right text-xs tabular-nums text-brand-text1 bg-brand-primary/5">
+                                {formatDKK(yearly.income.total - yearly.expenses.total - yearly.tax.total)}
+                            </td>
+                            <td className="px-3 py-2 text-right text-xs tabular-nums text-brand-text2">
+                                {formatDKK((yearly.income.total - yearly.expenses.total - yearly.tax.total) / 12)}
+                            </td>
+                        </tr>
 
                         {/* C) SKAT */}
                         {renderGroupHeader("Skat", "Skat i alt", months.map(m => m.tax.total), yearly.tax.total, months[0].tax.audit)}
@@ -166,18 +199,17 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                                 {renderRow("Aktieskat", months.map(m => m.tax.equity), yearly.tax.equity)}
                                 {renderRow("ASK skat", months.map(m => m.tax.ask), yearly.tax.ask)}
                                 {renderRow("Kapitalindkomstskat", months.map(m => m.tax.capital), yearly.tax.capital)}
-                                {renderRow("Skat i alt", months.map(m => m.tax.total), yearly.tax.total, true)}
                             </>
                         )}
 
-                        {/* D) OPSPARING & INVESTERING */}
-                        {renderGroupHeader("Opsparing & Investering", "Resterende", months.map(m => m.allocations.residual), yearly.allocations.residual)}
-                        {expanded.has("Opsparing & Investering") && (
+                        {/* D) ALLOKERING */}
+                        {renderGroupHeader("Fremtidig Allokering", "Resterende", months.map(m => m.allocations.residual), yearly.allocations.residual)}
+                        {expanded.has("Fremtidig Allokering") && (
                             <>
-                                {renderRow("Netto Rådighedsbeløb", months.map(m => m.netDisposable), yearly.netDisposable, true)}
-                                {renderRow("Investering", months.map(m => m.allocations.invest), yearly.allocations.invest, false, "text-brand-primary")}
+                                {renderRow("Netto Rådighedsbeløb", months.map(m => m.netDisposable), yearly.netDisposable, true, "bg-brand-accent/5 text-brand-accent")}
+                                {renderRow("Budgetteret Investering", months.map(m => m.allocations.invest), yearly.allocations.invest, false, "text-brand-primary")}
                                 {renderRow("Likvid opsparing", months.map(m => m.allocations.liquidSavings), yearly.allocations.liquidSavings, false, "text-brand-success")}
-                                {renderRow("Resterende likviditet", months.map(m => m.allocations.residual), yearly.allocations.residual, true, "text-brand-accent")}
+                                {renderRow("Resterende likviditet (uallokeret)", months.map(m => m.allocations.residual), yearly.allocations.residual, true, "text-brand-text1 font-black")}
                             </>
                         )}
                     </tbody>

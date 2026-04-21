@@ -28,7 +28,7 @@ type IncomeCategory = {
   type: "fixed" | "variable";
 };
 
-const GROUPS = ["Housing", "Utilities", "Transport", "Food", "Subscriptions", "Insurance", "Other"] as const;
+const GROUPS = ["Housing", "Utilities", "Transport", "Food", "Subscriptions", "Insurance", "Opsparing", "Other"] as const;
 
 function numberOr(value: unknown, fallback = 0): number {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -138,6 +138,7 @@ export default function BudgetPage() {
           food: grouped.Food,
           subscriptions: grouped.Subscriptions,
           insurance: grouped.Insurance,
+          opsparing: grouped.Opsparing,
           other: grouped.Other,
           total: totalExpenses,
           custom: rawCategories,
@@ -164,6 +165,7 @@ export default function BudgetPage() {
         acc.expenses.food += month.expenses.food;
         acc.expenses.subscriptions += month.expenses.subscriptions;
         acc.expenses.insurance += month.expenses.insurance;
+        acc.expenses.opsparing += month.expenses.opsparing;
         acc.expenses.other += month.expenses.other;
         acc.expenses.total += month.expenses.total;
         acc.tax.amBidrag += month.tax.amBidrag;
@@ -184,7 +186,7 @@ export default function BudgetPage() {
       },
       {
         income: { salary: 0, bonus: 0, other: 0, total: 0 },
-        expenses: { housing: 0, utilities: 0, transport: 0, food: 0, subscriptions: 0, insurance: 0, other: 0, total: 0 },
+        expenses: { housing: 0, utilities: 0, transport: 0, food: 0, subscriptions: 0, insurance: 0, opsparing: 0, other: 0, total: 0 },
         tax: { amBidrag: 0, kommune: 0, church: 0, bottom: 0, middle: 0, top: 0, equity: 0, ask: 0, capital: 0, total: 0 },
         netDisposable: 0,
         allocations: { invest: 0, liquidSavings: 0, residual: 0 },
@@ -211,36 +213,46 @@ export default function BudgetPage() {
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="overflow-hidden border-brand-border/70 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(250,248,239,0.96))] shadow-card">
-          <CardContent className="space-y-5 p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+      <section className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="relative overflow-hidden border-brand-border/40 bg-white/40 backdrop-blur-md shadow-card group">
+          {/* Decorative Mesh Gradient */}
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand-accent/10 blur-[100px] transition-opacity group-hover:opacity-100 opacity-60" />
+          <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-brand-primary/10 blur-[100px] transition-opacity group-hover:opacity-100 opacity-60" />
+          
+          <CardContent className="relative space-y-6 p-10">
+            <div className="flex flex-wrap items-center justify-between gap-6">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-brand-text3">Primary workspace</p>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-brand-text1">Monthly P&amp;L and editable assumptions</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-text3 opacity-80 antialiased">
+                  Primary workspace
+                </p>
+                <h2 className="mt-3 text-4xl font-bold tracking-tight">
+                  <span className="gradient-text">Monthly P&L</span> and editable assumptions
+                </h2>
               </div>
               <Link href="/input">
-                <Button variant="ghost" className="gap-2 rounded-full border border-brand-border bg-white px-4 text-brand-text2 hover:bg-brand-surface">
+                <Button variant="ghost" className="gap-2 rounded-full border border-brand-border/60 bg-white/80 px-6 backdrop-blur-sm transition-all hover:bg-brand-surface hover:scale-105 active:scale-95 shadow-soft">
                   <SlidersHorizontal className="h-4 w-4" />
                   Advanced assumptions
                 </Button>
               </Link>
             </div>
-            <p className="max-w-3xl text-sm leading-6 text-brand-text2">
-              Edit the monthly engine directly here. Income, spending and savings strategy update the P&amp;L immediately,
-              while housing, debt and tax detail stay available under advanced assumptions.
+            
+            <p className="max-w-2xl text-[15px] font-medium leading-relaxed text-brand-text2/90">
+              Direct access to the core engine. Your income, expenditure, and saving strategy 
+              instantly synchronize with the P&L matrix below.
             </p>
-            <div className="flex flex-wrap gap-3">
+
+            <div className="flex flex-wrap gap-4 pt-2">
               <Button
                 variant="ghost"
-                className="gap-2 rounded-full border border-brand-accent/20 bg-brand-accent/5 px-4 text-brand-text1 hover:bg-brand-accent/10"
+                className="gap-2 rounded-full border border-brand-accent/30 bg-brand-accent/5 px-6 font-bold text-brand-text1 transition-all hover:bg-brand-accent/10 hover:shadow-[0_0_20px_-5px_rgba(var(--brand-accent-rgb),0.2)]"
                 onClick={() => applyBudgetPreset?.("sophisticated_research")}
               >
                 <Sparkles className="h-4 w-4 text-brand-accent" />
                 Apply research baseline
               </Button>
               <Link href="/portfolio">
-                <Button variant="ghost" className="gap-2 rounded-full border border-brand-border bg-white px-4 text-brand-text2 hover:bg-brand-surface">
+                <Button variant="ghost" className="gap-2 rounded-full border border-brand-border/60 bg-white/80 px-6 text-brand-text2 transition-all hover:bg-brand-surface hover:scale-105">
                   Open portfolio forecast
                   <ArrowRight className="h-4 w-4" />
                 </Button>

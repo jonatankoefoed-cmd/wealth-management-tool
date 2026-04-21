@@ -58,11 +58,11 @@ export function createDefaultHousingInput(year = 2026): HousingPurchaseInput {
         },
         budgetIntegration: {
             monthlyDisposableIncomeBeforeHousing: 40000,
-            monthlyHousingRunningCosts: 4000,
+            monthlyHousingRunningCosts: 2925,
             propertyTaxRate: 0.0051,
             landTaxRate: 0.008,
-            utilities: 2500,
-            insurance: 500,
+            utilities: 0,
+            insurance: 0,
             associationFees: 0,
         },
         scenarioMeta: {

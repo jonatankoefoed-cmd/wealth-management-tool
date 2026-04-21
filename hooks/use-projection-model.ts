@@ -86,15 +86,19 @@ export const CAREER_PRESETS: Record<string, any> = {
 export const BUDGET_PRESETS = {
     sophisticated_research: {
         categories: [
-            { category: 'Dagligvarer', amount: 1750, group: 'Mad', type: 'variable' },
-            { category: 'Restaurant & Takeaway', amount: 1000, group: 'Mad', type: 'variable' },
-            { category: 'Fitness', amount: 448.25, group: 'Abonnementer', type: 'fixed' },
-            { category: 'Digital Services (ChatGPT)', amount: 183, group: 'Abonnementer', type: 'fixed' },
-            { category: 'Byen / Socialt', amount: 1500, group: 'Fritid', type: 'variable' },
+            { category: 'Dagligvare', amount: 1750, group: 'Mad', type: 'variable' },
+            { category: 'Restaurant', amount: 1000, group: 'Mad', type: 'variable' },
+            { category: 'Fitness', amount: 448, group: 'Abonnementer', type: 'fixed' },
+            { category: 'Chat GPT', amount: 183, group: 'Abonnementer', type: 'fixed' },
+            { category: 'Byen', amount: 1500, group: 'Fritid', type: 'variable' },
             { category: 'Transport', amount: 200, group: 'Transport', type: 'variable' },
+            { category: 'Materiel forbrug', amount: 400, group: 'Andet', type: 'variable' },
             { category: 'Gaver', amount: 250, group: 'Andet', type: 'variable' },
-            { category: 'Materiel Forbrug', amount: 400, group: 'Andet', type: 'variable' },
-            { category: 'Uforudsete Udgifter', amount: 400, group: 'Andet', type: 'variable' },
+            { category: 'Uforudset (pr md.)', amount: 400, group: 'Andet', type: 'variable' },
+            // Standalone Savings Categories as fixed expenses before residual
+            { category: 'Investering', amount: 500, group: 'Opsparing', type: 'fixed' },
+            { category: 'Opsparing', amount: 500, group: 'Opsparing', type: 'fixed' },
+            { category: 'Ferieopsparing boys', amount: 250, group: 'Opsparing', type: 'fixed' },
         ],
         events: [
             { name: 'Sverige Tur', amount: 3000, type: 'travel' },
