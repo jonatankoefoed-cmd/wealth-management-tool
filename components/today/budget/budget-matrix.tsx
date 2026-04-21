@@ -26,9 +26,9 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
     };
 
     const monthNames = months.map(m => new Date(m.monthKey).toLocaleDateString("da-DK", { month: "short" }));
-    const headers = ["Post", ...monthNames, "FY Total", "Avg/Mdr"];
+    const headers = ["Post", ...monthNames, "År i alt", "Gns/Mdr"];
 
-    const renderRow = (label: string, monthValues: number[], totalValue: number, isSubtotal = false, className?: string) => {
+    const renderRow = (label: string, monthValues: number[], totalValue: number, isSubtotal = false, className?: string, isPercent = false) => {
         const avg = totalValue / 12;
         return (
             <tr className={cn(
@@ -44,14 +44,14 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                 </td>
                 {monthValues.map((v, i) => (
                     <td key={i} className="px-3 py-2 text-right text-xs tabular-nums text-brand-text2 min-w-[100px]">
-                        {formatDKK(v)}
+                        {isPercent ? `${v.toFixed(1)}%` : formatDKK(v)}
                     </td>
                 ))}
                 <td className="px-3 py-2 text-right text-xs tabular-nums font-bold text-brand-text1 bg-brand-surface/20 min-w-[110px]">
-                    {formatDKK(totalValue)}
+                    {isPercent ? `${totalValue.toFixed(1)}%` : formatDKK(totalValue)}
                 </td>
                 <td className="px-3 py-2 text-right text-xs tabular-nums text-brand-text3 min-w-[100px]">
-                    {formatDKK(avg)}
+                    {isPercent ? `${avg.toFixed(1)}%` : formatDKK(avg)}
                 </td>
             </tr>
         );
@@ -94,59 +94,59 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-brand-border/50">
-                        {/* A) INCOME */}
-                        {renderGroupHeader("Income", "Total Income", months.map(m => m.income.total), yearly.income.total)}
-                        {expanded.has("Income") && (
+                        {/* A) INDKOMST */}
+                        {renderGroupHeader("Indkomst", "Indkomst i alt", months.map(m => m.income.total), yearly.income.total)}
+                        {expanded.has("Indkomst") && (
                             <>
-                                {renderRow("Salary (gross)", months.map(m => m.income.salary), yearly.income.salary)}
+                                {renderRow("Løn (brutto)", months.map(m => m.income.salary), yearly.income.salary)}
                                 {yearly.income.bonus > 0 && renderRow("Bonus", months.map(m => m.income.bonus), yearly.income.bonus)}
                                 {months[0]?.income.custom?.map((cat: any, i: number) => {
                                     const monthVals = months.map(m => m.income.custom[i]?.amount || 0);
                                     const totalVal = monthVals.reduce((sum, v) => sum + v, 0);
-                                    return totalVal > 0 ? renderRow(cat.category || "Unknown Income", monthVals, totalVal) : null;
+                                    return totalVal > 0 ? renderRow(cat.category || "Ukendt indkomst", monthVals, totalVal) : null;
                                 })}
-                                {renderRow("Total Income (gross)", months.map(m => m.income.total), yearly.income.total, true)}
+                                {renderRow("Indkomst i alt (brutto)", months.map(m => m.income.total), yearly.income.total, true)}
                             </>
                         )}
 
-                        {/* B) EXPENSES */}
-                        {renderGroupHeader("Expenses", "Total Expenses", months.map(m => m.expenses.total), yearly.expenses.total)}
-                        {expanded.has("Expenses") && (
+                        {/* B) UDGIFTER */}
+                        {renderGroupHeader("Udgifter", "Udgifter i alt", months.map(m => m.expenses.total), yearly.expenses.total)}
+                        {expanded.has("Udgifter") && (
                             <>
                                 {/* Base models deducted by custom items that share the group */}
                                 {(() => {
                                     const customH = months[0]?.expenses.custom?.filter((c: any) => c.group === "Housing").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
                                     const baseHousing = months.map(m => m.expenses.housing - customH);
                                     const totalHousing = baseHousing.reduce((s, v) => s + v, 0);
-                                    return totalHousing > 0 ? renderRow("Housing (Base Model)", baseHousing, totalHousing) : null;
+                                    return totalHousing > 0 ? renderRow("Bolig (Base Model)", baseHousing, totalHousing) : null;
                                 })()}
                                 {(() => {
                                     const customU = months[0]?.expenses.custom?.filter((c: any) => c.group === "Utilities").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
                                     const baseUtil = months.map(m => m.expenses.utilities - customU);
                                     const totalUtil = baseUtil.reduce((s, v) => s + v, 0);
-                                    return totalUtil > 0 ? renderRow("Utilities (Base Model)", baseUtil, totalUtil) : null;
+                                    return totalUtil > 0 ? renderRow("Forsyning (Base Model)", baseUtil, totalUtil) : null;
                                 })()}
                                 {(() => {
                                     const customI = months[0]?.expenses.custom?.filter((c: any) => c.group === "Insurance").reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
                                     const baseIns = months.map(m => m.expenses.insurance - customI);
                                     const totalIns = baseIns.reduce((s, v) => s + v, 0);
-                                    return totalIns > 0 ? renderRow("Insurance (Base Model)", baseIns, totalIns) : null;
+                                    return totalIns > 0 ? renderRow("Forsikring (Base Model)", baseIns, totalIns) : null;
                                 })()}
 
                                 {/* Custom individual rows */}
                                 {months[0]?.expenses.custom?.map((cat: any, i: number) => {
                                     const monthVals = months.map(m => m.expenses.custom[i]?.amount || 0);
                                     const totalVal = monthVals.reduce((sum, v) => sum + v, 0);
-                                    return renderRow(cat.category || "Unknown Expense", monthVals, totalVal);
+                                    return renderRow(cat.category || "Ukendt udgift", monthVals, totalVal);
                                 })}
 
-                                {renderRow("Total Expenses", months.map(m => m.expenses.total), yearly.expenses.total, true, "text-brand-danger")}
+                                {renderRow("Udgifter i alt", months.map(m => m.expenses.total), yearly.expenses.total, true, "text-brand-danger")}
                             </>
                         )}
 
-                        {/* C) TAX */}
-                        {renderGroupHeader("Tax", "Total Tax", months.map(m => m.tax.total), yearly.tax.total, months[0].tax.audit)}
-                        {expanded.has("Tax") && (
+                        {/* C) SKAT */}
+                        {renderGroupHeader("Skat", "Skat i alt", months.map(m => m.tax.total), yearly.tax.total, months[0].tax.audit)}
+                        {expanded.has("Skat") && (
                             <>
                                 {renderRow("AM-bidrag", months.map(m => m.tax.amBidrag), yearly.tax.amBidrag)}
                                 {renderRow("Kommuneskat", months.map(m => m.tax.kommune), yearly.tax.kommune)}
@@ -154,21 +154,39 @@ export function BudgetMatrix({ data }: BudgetMatrixProps) {
                                 {renderRow("Bundskat", months.map(m => m.tax.bottom), yearly.tax.bottom)}
                                 {renderRow("Mellemskat", months.map(m => m.tax.middle), yearly.tax.middle)}
                                 {renderRow("Topskat", months.map(m => m.tax.top), yearly.tax.top)}
-                                {renderRow("Equity tax", months.map(m => m.tax.equity), yearly.tax.equity)}
-                                {renderRow("ASK tax", months.map(m => m.tax.ask), yearly.tax.ask)}
-                                {renderRow("Capital income tax", months.map(m => m.tax.capital), yearly.tax.capital)}
-                                {renderRow("Total Tax", months.map(m => m.tax.total), yearly.tax.total, true)}
+                                {renderRow("Aktieskat", months.map(m => m.tax.equity), yearly.tax.equity)}
+                                {renderRow("ASK skat", months.map(m => m.tax.ask), yearly.tax.ask)}
+                                {renderRow("Kapitalindkomstskat", months.map(m => m.tax.capital), yearly.tax.capital)}
+                                {renderRow("Skat i alt", months.map(m => m.tax.total), yearly.tax.total, true)}
                             </>
                         )}
 
-                        {/* D) NET + ALLOCATION */}
-                        {renderGroupHeader("Net + Allocation", "Surplus", months.map(m => m.allocations.residual), yearly.allocations.residual)}
-                        {expanded.has("Net + Allocation") && (
+                        {/* NETTO OVERBLIK */}
+                        <tr className="bg-brand-surface border-y border-brand-border font-bold">
+                            <td className="sticky left-0 z-20 bg-inherit px-4 py-3 text-xs uppercase tracking-wider text-brand-text1">
+                                Netto Overblik
+                            </td>
+                            <td colSpan={headers.length - 1} className="px-4 py-2 text-right text-xs text-brand-text3 font-normal italic">
+                                Opsummering af indkomst efter skat
+                            </td>
+                        </tr>
+                        {renderRow("Bruttoindkomst i alt", months.map(m => m.income.total), yearly.income.total, true)}
+                        {renderRow("Skat i alt", months.map(m => m.tax.total), yearly.tax.total, true, "text-brand-danger")}
+                        {renderRow("Nettoindkomst", months.map(m => m.income.total - m.tax.total), (yearly.income.total - yearly.tax.total), true, "text-brand-success bg-brand-success/5")}
+                        {(() => {
+                            const monthRates = months.map(m => m.income.total > 0 ? (m.tax.total / m.income.total) * 100 : 0);
+                            const totalRate = yearly.income.total > 0 ? (yearly.tax.total / yearly.income.total) * 100 : 0;
+                            return renderRow("Effektiv skattesats (%)", monthRates, totalRate, true, "text-brand-text2 font-medium italic", true);
+                        })()}
+
+                        {/* D) OPSPARING & INVESTERING */}
+                        {renderGroupHeader("Opsparing & Investering", "Resterende", months.map(m => m.allocations.residual), yearly.allocations.residual)}
+                        {expanded.has("Opsparing & Investering") && (
                             <>
-                                {renderRow("Net Disposable", months.map(m => m.netDisposable), yearly.netDisposable, true)}
-                                {renderRow("Invest Contribution", months.map(m => m.allocations.invest), yearly.allocations.invest, false, "text-brand-primary")}
-                                {renderRow("Liquid Savings", months.map(m => m.allocations.liquidSavings), yearly.allocations.liquidSavings, false, "text-brand-success")}
-                                {renderRow("Residual Cash Flow", months.map(m => m.allocations.residual), yearly.allocations.residual, true, "text-brand-accent")}
+                                {renderRow("Netto Rådighedsbeløb", months.map(m => m.netDisposable), yearly.netDisposable, true)}
+                                {renderRow("Investering", months.map(m => m.allocations.invest), yearly.allocations.invest, false, "text-brand-primary")}
+                                {renderRow("Likvid opsparing", months.map(m => m.allocations.liquidSavings), yearly.allocations.liquidSavings, false, "text-brand-success")}
+                                {renderRow("Resterende likviditet", months.map(m => m.allocations.residual), yearly.allocations.residual, true, "text-brand-accent")}
                             </>
                         )}
                     </tbody>

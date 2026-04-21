@@ -39,6 +39,8 @@ export default function BudgetInputsPage() {
   }
 
   const baseline: any = inputs.baseline || {};
+  const housing = inputs.housing || {};
+  const budgetIntegration = housing.budgetIntegration || {};
   const returns: any = inputs.return_assumptions || { equityPct: 0.07 };
   const rawCategories = ((inputs.budget_categories as BudgetCategory[] | undefined) ?? []);
   const rawIncome = ((inputs.income_categories as IncomeCategory[] | undefined) ?? []);
@@ -83,22 +85,34 @@ export default function BudgetInputsPage() {
     updateInputs({ income_categories: categories });
   };
 
+  const updateHousingIntegration = (updates: any) => {
+    updateInputs({
+      housing: {
+        ...housing,
+        budgetIntegration: {
+          ...budgetIntegration,
+          ...updates
+        }
+      }
+    });
+  };
+
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
       <section className="space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-brand-text1">Assumptions Control Center</h2>
+          <h2 className="text-xl font-bold text-brand-text1">Budget Forudsætninger</h2>
           <p className="text-sm text-brand-text2">
-            Manage all your income, expenses, and strategic inputs that flow into the monthly P&L.
+            Administrer dine indkomster, udgifter og strategiske valg, der flyder ind i dit månedlige budget.
           </p>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-2">
-          {/* Base Strategy & Anchors */}
+          {/* Grundlæggende Strategi */}
           <Card className="border-brand-border/70 bg-brand-surface shadow-soft h-fit">
             <CardHeader className="border-b border-brand-border/50 bg-brand-surface2/50 pb-4">
-              <CardTitle>Base Strategy</CardTitle>
-              <CardDescription>Core drivers of your financial simulation.</CardDescription>
+              <CardTitle>Grundlæggende Strategi</CardTitle>
+              <CardDescription>De primære drivere i din finansielle simulering.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
@@ -121,7 +135,7 @@ export default function BudgetInputsPage() {
                   />
                 </label>
                 <label className="space-y-2 text-sm text-brand-text2">
-                  <span className="font-medium text-brand-text1 flex items-center gap-1">Savings rate (%)</span>
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Investeringsrate (%)</span>
                   <input
                     type="number"
                     value={(normalizePercent(baseline.savingsRatePct, 0) * 100).toFixed(0)}
@@ -138,7 +152,7 @@ export default function BudgetInputsPage() {
                   />
                 </label>
                 <label className="space-y-2 text-sm text-brand-text2">
-                  <span className="font-medium text-brand-text1 flex items-center gap-1">Fixed investment (DKK)</span>
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Fast investering (kr.)</span>
                   <input
                     type="number"
                     value={numberOr(baseline.monthlyLiquidSavings, 5_000)}
@@ -155,7 +169,7 @@ export default function BudgetInputsPage() {
                   />
                 </label>
                 <label className="space-y-2 text-sm text-brand-text2">
-                  <span className="font-medium text-brand-text1 flex items-center gap-1">Udvidet lønstigning (%)</span>
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Lønstigning (%)</span>
                   <input
                     type="number"
                     value={(normalizePercent(baseline.salaryGrowthPct, 0.02) * 100).toFixed(1)}
@@ -171,7 +185,7 @@ export default function BudgetInputsPage() {
                   />
                 </label>
                 <label className="space-y-2 text-sm text-brand-text2">
-                  <span className="font-medium text-brand-text1 flex items-center gap-1">Årlig inflation (%)</span>
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Inflation (%)</span>
                   <input
                     type="number"
                     value={(normalizePercent(baseline.inflationRatePct, 0.02) * 100).toFixed(1)}
@@ -187,7 +201,7 @@ export default function BudgetInputsPage() {
                   />
                 </label>
                 <label className="space-y-2 text-sm text-brand-text2">
-                  <span className="font-medium text-brand-text1 flex items-center gap-1">Expected equity return (%)</span>
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Forventet aktieafkast (%)</span>
                   <input
                     type="number"
                     value={(normalizePercent(returns.equityPct, 0.07) * 100).toFixed(1)}
@@ -200,7 +214,7 @@ export default function BudgetInputsPage() {
                   />
                 </label>
                 <label className="space-y-2 text-sm text-brand-text2">
-                  <span className="font-medium text-brand-text1 flex items-center gap-1">Forecast horizon (mdr)</span>
+                  <span className="font-medium text-brand-text1 flex items-center gap-1">Tidshorisont (mdr)</span>
                   <input
                     type="number"
                     value={numberOr(inputs.months, 120)}
@@ -213,21 +227,69 @@ export default function BudgetInputsPage() {
           </Card>
 
           <div className="flex flex-col gap-6">
-            {/* Custom Income */}
+            {/* Bolig & Forsyning */}
+            <Card className="border-brand-border/70 bg-brand-surface shadow-soft h-fit">
+              <CardHeader className="border-b border-brand-border/50 bg-brand-surface2/50 pb-4">
+                <CardTitle>Bolig, Forsyning & Forsikring</CardTitle>
+                <CardDescription>Faste udgifter til din bolig og forsikringer.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-6">
+                <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                  <label className="space-y-2 text-sm text-brand-text2">
+                    <span className="font-medium text-brand-text1 flex items-center gap-1">Månedlig boligdrift</span>
+                    <input
+                      type="number"
+                      value={numberOr(budgetIntegration.monthlyHousingRunningCosts, 4000)}
+                      onChange={(event) => updateHousingIntegration({ monthlyHousingRunningCosts: Number(event.target.value) })}
+                      className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm text-brand-text2">
+                    <span className="font-medium text-brand-text1 flex items-center gap-1">Ejerforening / Fællesudgifter</span>
+                    <input
+                      type="number"
+                      value={numberOr(budgetIntegration.associationFees, 0)}
+                      onChange={(event) => updateHousingIntegration({ associationFees: Number(event.target.value) })}
+                      className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm text-brand-text2">
+                    <span className="font-medium text-brand-text1 flex items-center gap-1">Forsyning (El, vand, varme)</span>
+                    <input
+                      type="number"
+                      value={numberOr(budgetIntegration.utilities, 2500)}
+                      onChange={(event) => updateHousingIntegration({ utilities: Number(event.target.value) })}
+                      className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm text-brand-text2">
+                    <span className="font-medium text-brand-text1 flex items-center gap-1">Forsikringer</span>
+                    <input
+                      type="number"
+                      value={numberOr(budgetIntegration.insurance, 500)}
+                      onChange={(event) => updateHousingIntegration({ insurance: Number(event.target.value) })}
+                      className="w-full rounded-xl border border-brand-border bg-white px-3 py-2.5 font-semibold tabular-nums shadow-sm transition-colors focus:border-brand-accent focus:outline-none"
+                    />
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Ekstra Indkomster */}
             <Card className="border-brand-border/70 bg-brand-surface shadow-soft flex-1">
               <CardHeader className="border-b border-brand-border/50 bg-brand-surface2/50 pb-4 flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Additional Income streams</CardTitle>
+                  <CardTitle>Ekstra Indkomster</CardTitle>
                 </div>
                 <Button variant="ghost" size="sm" className="gap-2 h-8 text-brand-text2 rounded-full hover:bg-brand-surface border border-brand-border" onClick={addIncomeCategory}>
                   <Plus className="h-3 w-3" />
-                  Add
+                  Tilføj
                 </Button>
               </CardHeader>
               <CardContent className="pt-6">
                 <div className="space-y-3">
                   {rawIncome.length === 0 && (
-                    <p className="text-xs text-brand-text3 text-center py-2">No additional income added.</p>
+                    <p className="text-xs text-brand-text3 text-center py-2">Ingen ekstra indkomster tilføjet.</p>
                   )}
                   {rawIncome.map((category, index) => (
                     <div key={`inc-${index}`} className="grid gap-2 grid-cols-[1.5fr_1fr_auto]">
@@ -236,14 +298,14 @@ export default function BudgetInputsPage() {
                         value={category.category}
                         onChange={(event) => updateIncomeCategory(index, { category: event.target.value })}
                         className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-accent focus:outline-none"
-                        placeholder="Income name"
+                        placeholder="Navn på indkomst"
                       />
                       <input
                         type="number"
                         value={numberOr(category.amount)}
                         onChange={(event) => updateIncomeCategory(index, { amount: Number(event.target.value) })}
                         className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-brand-accent focus:outline-none"
-                        placeholder="0 DKK"
+                        placeholder="0 kr."
                       />
                       <button
                         type="button"
@@ -258,15 +320,15 @@ export default function BudgetInputsPage() {
               </CardContent>
             </Card>
 
-            {/* Custom Expenses */}
+            {/* Andre løbende udgifter */}
             <Card className="border-brand-border/70 bg-brand-surface shadow-soft flex-1">
               <CardHeader className="border-b border-brand-border/50 bg-brand-surface2/50 pb-4 flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Custom Budget lines</CardTitle>
+                  <CardTitle>Andre løbende udgifter</CardTitle>
                 </div>
                 <Button variant="ghost" size="sm" className="gap-2 h-8 text-brand-text2 rounded-full hover:bg-brand-surface border border-brand-border" onClick={addCategory}>
                   <Plus className="h-3 w-3" />
-                  Add
+                  Tilføj
                 </Button>
               </CardHeader>
               <CardContent className="pt-6">
@@ -278,13 +340,14 @@ export default function BudgetInputsPage() {
                         value={category.category}
                         onChange={(event) => updateCategory(index, { category: event.target.value })}
                         className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-accent focus:outline-none"
-                        placeholder="Expense name"
+                        placeholder="Navn på udgift"
                       />
                       <input
                         type="number"
                         value={numberOr(category.amount)}
                         onChange={(event) => updateCategory(index, { amount: Number(event.target.value) })}
                         className="rounded-xl border border-brand-border bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-brand-accent focus:outline-none"
+                        placeholder="0 kr."
                       />
                       <select
                         value={category.group}
