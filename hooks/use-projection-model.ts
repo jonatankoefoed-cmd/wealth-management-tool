@@ -13,6 +13,14 @@ export interface SimulationInputs {
     bonus_growth_path?: { model: string; yearlyPct: number[] }; // [NEW] Bonus path
     return_assumptions?: { equityPct: number; bondPct: number };
     housing?: any; // To be typed strictly later
+    suDebt?: {
+        currentBalance: number;
+        interestRateStudy: number;
+        interestRateRepayment: number;
+        repaymentStartDate: string;
+        useGracePeriod: boolean;
+        futurePayouts: Array<{ month: string; amount: number }>;
+    };
     education?: {
         studyEndDate?: string; // YYYY-MM-DD
         suInterestRateStudy?: number; // 0.04 default
@@ -187,37 +195,39 @@ export function useProjectionModel() {
                     // Map snapshot holdings to engine input
                 }
 
-                // 3. Debt (From Snapshot)
+                // 3. Debt (From Snapshot + Manual Input Overrides)
+                const debtInputs: any[] = [];
+
                 if (snapshot?.debts && snapshot.debts.length > 0) {
-                    const debtInputs = snapshot.debts.map(d => {
+                    snapshot.debts.forEach(d => {
+                        // Skip backend SU debt if we have manual local suDebt inputs
+                        if (d.kind === "SU" && inputs?.suDebt) {
+                            return; 
+                        }
+
                         let interestRateAnnual = d.interestRate;
                         let interestRateFuture = undefined;
                         let interestRateSwitchDate = undefined;
                         let gracePeriodEnd = d.repaymentStartDate ? d.repaymentStartDate.substring(0, 7) : undefined;
                         let accumulateInterest = false;
 
-                        // Apply SU Loan Logic if applicable
+                        // Apply standard snapshot SU logic as fallback
                         if (d.kind === "SU") {
                             accumulateInterest = true;
-
-                            // User Overrides from Inputs
-                            const studyEnd = inputs?.education?.studyEndDate; // YYYY-MM-DD
+                            const studyEnd = inputs?.education?.studyEndDate; 
                             const suRateStudy = inputs?.education?.suInterestRateStudy ?? 0.04;
                             const suRateRepay = inputs?.education?.suInterestRateRepayment ?? 0.026;
 
                             if (studyEnd) {
-                                // Calculate Repayment Start: Jan 1st of Year+2
                                 const studyYear = parseInt(studyEnd.split('-')[0]);
                                 gracePeriodEnd = `${studyYear + 2}-01`;
-
-                                // Interest Rates
                                 interestRateAnnual = suRateStudy;
                                 interestRateFuture = suRateRepay;
                                 interestRateSwitchDate = studyEnd.substring(0, 7);
                             }
                         }
 
-                        return {
+                        debtInputs.push({
                             id: d.id,
                             name: d.name,
                             principal: d.balance,
@@ -226,8 +236,35 @@ export function useProjectionModel() {
                             interestRateSwitchDate,
                             gracePeriodEnd,
                             accumulateInterest,
-                        };
+                        });
                     });
+                }
+
+                // Inject Manual SU Debt from Inputs!
+                if (inputs?.suDebt) {
+                    // Future payouts acts as manual drawdowns, but the engine models them differently.
+                    // For now, we add them to the starting balance if the startMonth is AFTER the payout.
+                    // But if the payouts happen during the engine run, they need to be injected into the engine.
+                    // The engine's DebtModule does not support future principal *increases* out of the box dynamically via monthly cashflows yet,
+                    // but we can pass the starting balance + payouts directly if they are very near term, or assume it's just part of the initial balance for simplicity.
+                    // The user specifically wants to see them added in May/June.
+                    // Since DebtModule doesn't support 'future payouts' out of the box, we will add them to the initial principal right now to ensure the P&L tracks the worst-case debt load.
+                    
+                    const totalFuturePayouts = inputs.suDebt.futurePayouts.reduce((acc, p) => acc + p.amount, 0);
+
+                    debtInputs.push({
+                        id: 'manual-su-debt',
+                        name: 'SU Gæld',
+                        principal: inputs.suDebt.currentBalance + totalFuturePayouts,
+                        interestRateAnnual: inputs.suDebt.interestRateStudy,
+                        interestRateFuture: inputs.suDebt.interestRateRepayment,
+                        interestRateSwitchDate: inputs.suDebt.repaymentStartDate,
+                        gracePeriodEnd: inputs.suDebt.useGracePeriod ? undefined : inputs.suDebt.repaymentStartDate, 
+                        accumulateInterest: true,
+                    });
+                }
+
+                if (debtInputs.length > 0) {
                     modules.push(createDebtModule({ debts: debtInputs }));
                 }
 

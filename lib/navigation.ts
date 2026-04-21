@@ -5,6 +5,7 @@ import {
   ReceiptText,
   Wallet,
   SlidersHorizontal,
+  Landmark,
   type LucideIcon,
 } from "lucide-react";
 
@@ -29,8 +30,8 @@ export const NAV_ITEMS: NavigationItem[] = [
     description: "Monthly P&L and scenario editing",
   },
   {
-    href: "/budget-inputs",
-    label: "Budget Inputs",
+    href: "/input",
+    label: "Inputs",
     icon: SlidersHorizontal,
     description: "Assumptions Control Center",
   },
@@ -40,6 +41,12 @@ export const NAV_ITEMS: NavigationItem[] = [
     icon: LineChart,
     description: "Composition and forward outlook",
   },
+  {
+    href: "/debt",
+    label: "Gæld",
+    icon: Landmark,
+    description: "Eksisterende gæld og SU-lån",
+  },
 ];
 
 export function getNavigationMeta(pathname: string): NavigationItem {
@@ -47,22 +54,17 @@ export function getNavigationMeta(pathname: string): NavigationItem {
   if (item) {
     return item;
   }
+  if (pathname.startsWith("/debt")) {
+    return NAV_ITEMS[4];
+  }
   if (pathname.startsWith("/input")) {
-    return {
-      href: pathname,
-      label: "Advanced Assumptions",
-      icon: Wallet,
-      description: "Housing, debt, tax and long-range settings",
-    };
+    return NAV_ITEMS[2];
   }
   if (pathname.startsWith("/today/net-worth")) {
     return NAV_ITEMS[1];
   }
   if (pathname.startsWith("/today/budget")) {
     return NAV_ITEMS[1];
-  }
-  if (pathname.startsWith("/budget-inputs")) {
-    return NAV_ITEMS[2];
   }
   if (pathname.startsWith("/portfolio") || pathname.startsWith("/future")) {
     return NAV_ITEMS[3];
